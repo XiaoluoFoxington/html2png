@@ -12,6 +12,7 @@ export const DEFAULTS = {
   background: "auto",  // 'auto' | 'transparent' | 'white' | 'black' | 'custom'
   customBg: "#22c55e", // 自定义背景色
   runScripts: false,   // 是否执行用户 HTML 中的 JS
+  autoRefresh: true,   // 编辑时是否自动刷新预览（关闭后需手动点「刷新」）
   // —— html-to-image 扩展选项（仅影响导出，不影响预览）——
   quality: 0.92,            // JPEG/WebP 输出质量（0.5–1）
   skipFonts: false,         // 跳过 @font-face 字体嵌入

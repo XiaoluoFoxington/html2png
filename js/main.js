@@ -61,6 +61,7 @@ const ui = createUi({
   onLoadPreset,
   onSavePreset,
   onDeletePreset,
+  onRefresh,
   onClear,
   actions,
 });
@@ -93,7 +94,7 @@ actions.copy = () => {
 const editor = createEditor($editor, {
   onChange: (value) => {
     state.html = value;
-    scheduleRebuild();
+    markChanged(); // 关闭自动刷新时仅标记，点「刷新」手动重建
     persist();
     ui.clearPresetSelection(); // 内容已偏离当前预设
   },
@@ -116,6 +117,12 @@ function scheduleRebuild() {
   debouncedRebuild();
 }
 
+/** 内容/设置变更：自动刷新开启时调度重建，关闭时仅标记待刷新 */
+function markChanged() {
+  dirty = true;
+  if (state.autoRefresh) debouncedRebuild();
+}
+
 /** 下载/复制前先同步最新内容 */
 function flushRebuild() {
   if (!dirty) return;
@@ -133,7 +140,7 @@ function setSetting(key, value) {
     case "widthMode":
       ui.syncControls();
       preview.applyWidth();
-      scheduleRebuild(); // srcdoc 中注入的宽度样式变化
+      markChanged(); // srcdoc 中注入的宽度样式变化
       break;
     case "fixedWidth":
       preview.applyWidth();
@@ -142,7 +149,11 @@ function setSetting(key, value) {
     case "background":
     case "customBg":
     case "runScripts":
-      scheduleRebuild(); // srcdoc 中注入的样式/脚本策略变化
+      markChanged(); // srcdoc 中注入的样式/脚本策略变化
+      break;
+    case "autoRefresh":
+      // 重新开启自动刷新时，把积压的未渲染变更补渲一次
+      if (value && dirty) scheduleRebuild();
       break;
     case "scale":
     case "format":
@@ -159,7 +170,7 @@ function onLoadPreset(preset) {
   if (!preset || typeof preset.html !== "string") return;
   state.html = preset.html;
   editor.setValue(preset.html);
-  scheduleRebuild();
+  markChanged();
   persist();
   ui.renderPresets(presets, preset.id); // 保持选中态，删除按钮可用
 }
@@ -194,6 +205,11 @@ function onDeletePreset(id) {
 
 function onClear() {
   editor.clear(); // 内部会触发 onChange
+}
+
+/** 顶栏「刷新」：立即按当前代码与设置重建预览（重新加载资源与脚本） */
+function onRefresh() {
+  doRebuild();
 }
 
 /* ---------- 启动 ---------- */

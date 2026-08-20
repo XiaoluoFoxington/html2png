@@ -19,6 +19,7 @@ import {
  *   onLoadPreset:(preset:{id:string,name:string,html:string})=>void,
  *   onSavePreset:(name:string)=>void,
  *   onDeletePreset:(id:string)=>void,
+ *   onRefresh:()=>void,
  *   onClear:()=>void,
  *   actions:{download:()=>void, copy:()=>void},
  * }} deps
@@ -29,6 +30,7 @@ export function createUi({
   onLoadPreset,
   onSavePreset,
   onDeletePreset,
+  onRefresh,
   onClear,
   actions,
 }) {
@@ -41,6 +43,8 @@ export function createUi({
     presetForm: $("#preset-form"),
     presetName: $("#preset-name"),
     presetCancel: $("#preset-cancel"),
+    refresh: $("#btn-refresh"),
+    autoRefresh: $("#auto-refresh"),
     clear: $("#btn-clear"),
     download: $("#btn-download"),
     copy: $("#btn-copy"),
@@ -124,6 +128,7 @@ export function createUi({
     el.scale.value = String(st.scale);
     el.format.value = st.format;
     el.runScripts.checked = st.runScripts;
+    el.autoRefresh.checked = st.autoRefresh;
     el.qualityRange.value = String(st.quality);
     el.qualityVal.textContent = `${Math.round(st.quality * 100)}%`;
     el.qualityRange.closest(".setting").classList.toggle(
@@ -202,6 +207,10 @@ export function createUi({
   });
 
   /* ---------- 事件绑定 ---------- */
+  el.refresh.addEventListener("click", () => onRefresh());
+  el.autoRefresh.addEventListener("change", () =>
+    setSetting("autoRefresh", el.autoRefresh.checked)
+  );
   el.clear.addEventListener("click", onClear);
   el.download.addEventListener("click", () => actions.download());
   el.copy.addEventListener("click", () => actions.copy());

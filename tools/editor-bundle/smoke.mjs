@@ -88,6 +88,14 @@ try {
   check("默认 HTML 已载入", initial.doc.includes("把任意 HTML 代码渲染成一张图片"));
   check("语法高亮已生效", initial.tokens > 3, `${initial.tokens} 个高亮 token`);
 
+  /* 1a. 顶栏刷新控件 */
+  const headerCtl = await page.evaluate(() => ({
+    refreshBtn: !!document.querySelector("#btn-refresh"),
+    autoChecked: document.querySelector("#auto-refresh").checked,
+  }));
+  check("顶栏刷新按钮与自动刷新开关（默认开启）",
+    headerCtl.refreshBtn && headerCtl.autoChecked);
+
   /* 1b. 主题计算样式（对齐 tokens.css：深色 · 绿色） */
   const theme = await page.evaluate(() => {
     const cs = (sel, prop) => {
@@ -208,6 +216,47 @@ try {
   const afterReload = await page.evaluate(() =>
     document.querySelector(".cm-content").textContent);
   check("刷新后内容持久化", afterReload.includes("hello"));
+
+  /* 5b. 自动刷新开关（关闭→冻结预览，重开→补渲积压，手动刷新→重建） */
+  const srcdocBefore = await page.evaluate(() => document.getElementById("frame").srcdoc);
+  await page.click(".switch-header");               // 关闭自动刷新
+  await sleep(200);
+  await page.click(".cm-content");
+  await page.keyboard.type("<em>frozen</em>");
+  await sleep(800);                                 // 超过 debounce 350ms
+  const frozen = await page.evaluate(() => ({
+    doc: document.querySelector(".cm-content").textContent,
+    srcdoc: document.getElementById("frame").srcdoc,
+  }));
+  check("关闭自动刷新后编辑不重建预览",
+    frozen.srcdoc === srcdocBefore && frozen.doc.includes("frozen"),
+    `srcdoc相同=${frozen.srcdoc === srcdocBefore}`);
+
+  await page.click(".switch-header");               // 重新开启自动刷新
+  await sleep(900);                                 // debounce 350ms + 重建
+  const caughtUp = await page.evaluate(() =>
+    document.getElementById("frame").srcdoc);
+  check("重新开启自动刷新后补渲积压变更",
+    caughtUp !== srcdocBefore && caughtUp.includes("frozen"),
+    `srcdoc含frozen=${caughtUp.includes("frozen")}`);
+
+  await page.click(".switch-header");               // 再次关闭
+  await sleep(200);
+  await page.click(".cm-content");
+  await page.keyboard.type("<b>manual</b>");
+  await sleep(800);
+  const srcdocStale = await page.evaluate(() => document.getElementById("frame").srcdoc);
+  check("关闭自动刷新时预览保持冻结", !srcdocStale.includes("manual"));
+
+  await page.click("#btn-refresh");
+  await sleep(1200);                                // 等待重建 + ready
+  const refreshed = await page.evaluate(() => document.getElementById("frame").srcdoc);
+  check("手动「刷新」按钮重建预览",
+    refreshed !== srcdocStale && refreshed.includes("manual"),
+    `len=${refreshed.length}`);
+
+  await page.click(".switch-header");               // 恢复自动刷新（默认态）
+  await sleep(300);
 
   /* 6. Ctrl+Enter 下载全链路
      （无头 Edge 不派发 page 'download' 事件，改为轮询下载目录

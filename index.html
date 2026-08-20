@@ -31,7 +31,13 @@
           <option value="">预设…</option>
         </select>
         <button id="btn-save-preset" class="btn btn-ghost" type="button" title="把当前代码保存为预设">保存预设</button>
-        <button id="btn-del-preset" class="btn btn-ghost" type="button" title="删除当前选中的预设" disabled>删除</button>
+        <button id="btn-del-preset" class="btn btn-ghost" type="button" title="删除当前选中的预设" disabled>删除预设</button>
+        <button id="btn-refresh" class="btn btn-ghost" type="button" title="立即重新渲染预览">刷新</button>
+        <label class="switch switch-header" title="编辑代码时自动刷新预览">
+          <input type="checkbox" id="auto-refresh" checked>
+          <span class="switch-box"></span>
+          <span class="switch-text">自动刷新</span>
+        </label>
         <button id="btn-clear" class="btn btn-ghost" type="button">清空</button>
         <button id="btn-copy" class="btn btn-ghost" type="button">复制图片</button>
         <button id="btn-download" class="btn btn-primary" type="button">下载图片</button>
@@ -211,6 +217,6 @@
   <div class="toasts" id="toasts" aria-live="polite"></div>
 
   <noscript>本工具需要启用 JavaScript 才能运行。</noscript>
-  <script type="module" src="js/main.js?v=7"></script>
+  <script type="module" src="js/main.js?v=8"></script>
 </body>
 </html>
