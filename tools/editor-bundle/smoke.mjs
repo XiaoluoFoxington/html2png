@@ -3,8 +3,9 @@
    ------------------------------------------------------------
    用法：cd tools/editor-bundle && npm install && npm run smoke
    依赖系统 Edge/Chrome；自动启动本地服务器、跑完即关。
-   校验：加载无错误 / 高亮生效 / 预设保存-加载-删除 / 清空 / 输入 /
-   localStorage 持久化 / Ctrl+Enter 下载全链路。
+   校验：加载无错误 / 高亮生效 / 左栏标签页切换 / 预设保存-加载-删除 /
+   自动刷新与手动刷新 / 清空 / 输入 / localStorage 持久化 /
+   Ctrl+Enter 下载全链路。
    ============================================================ */
 
 import puppeteer from "puppeteer-core";
@@ -95,6 +96,41 @@ try {
   }));
   check("顶栏刷新按钮与自动刷新开关（默认开启）",
     headerCtl.refreshBtn && headerCtl.autoChecked);
+
+  /* 1b. 左栏标签页：代码 / 配置 / 关于 */
+  const tabNames = await page.evaluate(() =>
+    [...document.querySelectorAll("#main-tabs .tab")].map((t) => t.dataset.tab).join(","));
+  check("左栏包含代码/配置/关于三个标签", tabNames === "code,config,about", tabNames);
+
+  await page.click('#main-tabs .tab[data-tab="config"]');
+  await sleep(200);
+  const cfgState = await page.evaluate(() => ({
+    codeHidden: !document.querySelector('.tab-panel[data-panel="code"]').classList.contains("is-active"),
+    cfgShown: document.querySelector('.tab-panel[data-panel="config"]').classList.contains("is-active"),
+    editorHidden: !document.querySelector(".code-editor").offsetParent,
+    hasBgSelect: !!document.querySelector("#bg-select option"),
+  }));
+  check("切换到「配置」标签", cfgState.codeHidden && cfgState.cfgShown && cfgState.editorHidden,
+    `bg选项=${cfgState.hasBgSelect}`);
+
+  await page.click('#main-tabs .tab[data-tab="about"]');
+  await sleep(200);
+  const aboutState = await page.evaluate(() => ({
+    aboutShown: document.querySelector('.tab-panel[data-panel="about"]').classList.contains("is-active"),
+    hasKeys: !!document.querySelector(".about-keys"),
+    hasLinks: [...document.querySelectorAll(".about-links a")].length,
+  }));
+  check("切换到「关于」标签（快捷键 + 开源链接）",
+    aboutState.aboutShown && aboutState.hasKeys && aboutState.hasLinks >= 2,
+    `链接数=${aboutState.hasLinks}`);
+
+  await page.click('#main-tabs .tab[data-tab="code"]');
+  await sleep(200);
+  const codeBack = await page.evaluate(() => ({
+    codeShown: document.querySelector('.tab-panel[data-panel="code"]').classList.contains("is-active"),
+    editorVisible: !!document.querySelector(".code-editor").offsetParent,
+  }));
+  check("切回「代码」标签且编辑器可见", codeBack.codeShown && codeBack.editorVisible);
 
   /* 1b. 主题计算样式（对齐 tokens.css：深色 · 绿色） */
   const theme = await page.evaluate(() => {

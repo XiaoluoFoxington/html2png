@@ -76,6 +76,7 @@ export function createUi({
     overlayText: $("#overlay-text"),
     empty: $("#stage-empty"),
     toasts: $("#toasts"),
+    tabs: $("#main-tabs"),
   };
 
   /* ---------- 静态选项填充 ---------- */
@@ -204,6 +205,21 @@ export function createUi({
     if (!preset) return;
     if (!confirm(`确定删除预设「${preset.name}」？`)) return;
     onDeletePreset(preset.id);
+  });
+
+  /* ---------- 标签页（代码 / 配置 / 关于） ---------- */
+  $$(".tab", el.tabs).forEach((tab) => {
+    tab.addEventListener("click", () => {
+      const name = tab.dataset.tab;
+      $$(".tab", el.tabs).forEach((t) => {
+        const on = t.dataset.tab === name;
+        t.classList.toggle("is-active", on);
+        t.setAttribute("aria-selected", String(on));
+      });
+      $$(".tab-panel").forEach((p) =>
+        p.classList.toggle("is-active", p.dataset.panel === name)
+      );
+    });
   });
 
   /* ---------- 事件绑定 ---------- */

@@ -162,9 +162,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 12px 18px;
-  padding: 12px 14px;
-  background: var(--bg-raise);
-  border-top: 1px solid var(--border);
+  padding: 14px;
 }
 
 .setting {

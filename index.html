@@ -9,10 +9,10 @@
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <link rel="stylesheet" href="css/tokens.css?v=5">
   <link rel="stylesheet" href="css/base.css?v=5">
-  <link rel="stylesheet" href="css/layout.css?v=5">
-  <link rel="stylesheet" href="css/components.css?v=7">
+  <link rel="stylesheet" href="css/layout.css?v=7">
+  <link rel="stylesheet" href="css/components.css?v=8">
   <link rel="stylesheet" href="css/editor.css?v=6">
-  <link rel="stylesheet" href="css/preview.css?v=5">
+  <link rel="stylesheet" href="css/preview.css?v=6">
 </head>
 <body>
   <div class="app">
@@ -47,19 +47,167 @@
     <!-- ===== 主体 ===== -->
     <main class="app-body">
 
-      <!-- 左：代码编辑 -->
+      <!-- 左：代码 / 配置 / 关于 -->
       <section class="panel">
-        <div class="panel-head">
-          <h2>HTML 代码</h2>
-          <span class="hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> 快速下载</span>
+        <div class="tabs" id="main-tabs" role="tablist" aria-label="左栏标签页">
+          <button class="tab is-active" type="button" role="tab" aria-selected="true" data-tab="code">代码</button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-tab="config">配置</button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-tab="about">关于</button>
         </div>
-        <div id="editor"></div>
+
+        <div class="tab-panel is-active" data-panel="code">
+          <div id="editor"></div>
+        </div>
+
+        <div class="tab-panel" data-panel="config">
+          <div class="settings">
+            <div class="setting">
+              <span class="setting-label">宽度</span>
+              <div class="seg" role="radiogroup" aria-label="宽度模式">
+                <label class="seg-item">
+                  <input type="radio" name="widthMode" id="width-auto" value="auto" checked>
+                  <span>自动</span>
+                </label>
+                <label class="seg-item">
+                  <input type="radio" name="widthMode" id="width-fixed" value="fixed">
+                  <span>固定</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="setting hidden" id="fixed-row">
+              <span class="setting-label">固定宽度</span>
+              <div class="presets" id="presets"></div>
+              <div class="input-wrap">
+                <input class="input" id="fixed-width" type="number" min="120" max="4096" step="10" value="1280">
+                <span class="unit">px</span>
+              </div>
+            </div>
+
+            <div class="setting">
+              <span class="setting-label">背景</span>
+              <select class="select" id="bg-select"></select>
+              <input class="color-input hidden" id="custom-bg" type="color" value="#22c55e" title="自定义背景色">
+            </div>
+
+            <div class="setting">
+              <span class="setting-label">缩放</span>
+              <select class="select" id="scale-select" title="输出图片的像素密度"></select>
+            </div>
+
+            <div class="setting">
+              <span class="setting-label">格式</span>
+              <select class="select" id="format-select" title="输出图片格式"></select>
+            </div>
+
+            <div class="setting">
+              <span class="setting-label">脚本</span>
+              <label class="switch" title="在沙箱内执行 HTML 中的 JavaScript（与宿主完全隔离）">
+                <input type="checkbox" id="run-scripts">
+                <span class="switch-box"></span>
+                <span class="switch-text">执行 JS</span>
+              </label>
+            </div>
+
+            <details class="adv" id="adv-options">
+              <summary>高级选项 <span class="adv-hint">html-to-image 扩展 · 仅影响导出</span></summary>
+              <div class="adv-grid">
+                <div class="setting">
+                  <span class="setting-label">质量</span>
+                  <input class="range" id="quality-range" type="range" min="0.5" max="1" step="0.01" value="0.92"
+                    title="JPEG / WebP 输出质量（PNG 无损，不受影响）">
+                  <span class="range-val" id="quality-val">92%</span>
+                </div>
+                <div class="setting">
+                  <span class="setting-label">字体格式</span>
+                  <select class="select" id="font-format" title="@font-face 首选嵌入格式（'' 自动）"></select>
+                </div>
+                <div class="setting">
+                  <span class="setting-label">字体嵌入</span>
+                  <label class="switch" title="跳过 @font-face 字体嵌入（更快，但自定义字体可能丢失）">
+                    <input type="checkbox" id="skip-fonts">
+                    <span class="switch-box"></span>
+                    <span class="switch-text">跳过嵌入</span>
+                  </label>
+                </div>
+                <div class="setting">
+                  <span class="setting-label">资源</span>
+                  <label class="switch" title="资源 URL 保留查询参数（影响缓存键，默认剥离）">
+                    <input type="checkbox" id="include-params">
+                    <span class="switch-box"></span>
+                    <span class="switch-text">保留查询参数</span>
+                  </label>
+                  <label class="switch" title="资源 URL 追加时间戳，绕过 HTTP 缓存">
+                    <input type="checkbox" id="cache-bust">
+                    <span class="switch-box"></span>
+                    <span class="switch-text">绕过缓存</span>
+                  </label>
+                </div>
+                <div class="setting">
+                  <span class="setting-label">占位色</span>
+                  <input class="color-input" id="placeholder-color" type="color" value="#e5e7eb"
+                    title="跨域资源加载失败时导出的占位色">
+                </div>
+                <div class="setting setting-wide">
+                  <span class="setting-label">字体 CSS</span>
+                  <input class="input input-wide" id="font-embed-css" type="text" spellcheck="false"
+                    placeholder="自定义 @font-face CSS，如：@font-face{font-family:X;src:url(...)}"
+                    title="直接指定要嵌入的字体 CSS，覆盖自动检测（留空则自动）">
+                </div>
+                <div class="setting setting-wide">
+                  <span class="setting-label">排除元素</span>
+                  <input class="input input-wide" id="filter-selector" type="text" spellcheck="false"
+                    placeholder="CSS 选择器，逗号分隔，如：.ad, #banner, [data-hide]"
+                    title="导出时排除匹配的元素（相当于库的 filter 选项，不影响预览）">
+                </div>
+                <div class="setting setting-wide">
+                  <span class="setting-label">附加样式</span>
+                  <input class="input input-wide" id="extra-style" type="text" spellcheck="false"
+                    placeholder="CSS 声明，如：font-family: Arial; font-size: 16px"
+                    title="导出时应用到根元素的样式（相当于库的 style 选项，不影响预览）">
+                </div>
+              </div>
+            </details>
+          </div>
+        </div>
+
+        <div class="tab-panel" data-panel="about">
+          <div class="about">
+            <h3>使用方法</h3>
+            <ol>
+              <li>在「代码」中输入 HTML，右侧实时预览；点「下载图片」或「复制图片」导出。</li>
+              <li>在「配置」中调整宽度、背景、缩放、格式等输出参数。</li>
+              <li>「保存预设」把当前代码存为预设，之后从顶栏「预设…」下拉框一键加载。</li>
+              <li>脚本默认不执行；需要时在「配置」开启「执行 JS」（沙箱内运行，与页面隔离）。</li>
+              <li>请通过本地静态服务器打开（<code>node tools/serve.mjs</code> 或 <code>serve.cmd</code>），
+                不要直接双击 <code>index.html</code>。</li>
+            </ol>
+
+            <h3>快捷键</h3>
+            <table class="about-keys">
+              <tr><td><kbd>Ctrl</kbd> + <kbd>Enter</kbd></td><td>快速下载图片</td></tr>
+              <tr><td><kbd>Ctrl</kbd> + <kbd>F</kbd></td><td>编辑器内查找</td></tr>
+              <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>F</kbd></td><td>编辑器内替换</td></tr>
+              <tr><td><kbd>Ctrl</kbd> + <kbd>Z</kbd> / <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd></td><td>撤销 / 重做</td></tr>
+              <tr><td><kbd>Alt</kbd> + 点击</td><td>多光标编辑</td></tr>
+              <tr><td><kbd>Ctrl</kbd> + <kbd>D</kbd></td><td>选中下一个匹配项</td></tr>
+            </table>
+
+            <h3>开源</h3>
+            <p>本项目是原生静态前端工具（无框架、无构建步骤），基于以下开源项目：</p>
+            <ul class="about-links">
+              <li><a href="https://codemirror.net/" target="_blank" rel="noopener">CodeMirror 6</a> — 代码编辑器</li>
+              <li><a href="https://github.com/bubkoo/html-to-image" target="_blank" rel="noopener">html-to-image</a> — 渲染引擎</li>
+            </ul>
+            <p class="about-note">代码完全开源，可部署到任意静态托管（如 GitHub Pages）。</p>
+          </div>
+        </div>
       </section>
 
-      <!-- 右：预览与输出 -->
+      <!-- 右：预览 -->
       <section class="panel">
         <div class="panel-head">
-          <h2>预览与输出</h2>
+          <h2>预览</h2>
           <div class="stats" id="stats">—</div>
         </div>
 
@@ -84,116 +232,6 @@
             <span id="overlay-text">加载预览…</span>
           </div>
         </div>
-
-        <div class="settings">
-          <div class="setting">
-            <span class="setting-label">宽度</span>
-            <div class="seg" role="radiogroup" aria-label="宽度模式">
-              <label class="seg-item">
-                <input type="radio" name="widthMode" id="width-auto" value="auto" checked>
-                <span>自动</span>
-              </label>
-              <label class="seg-item">
-                <input type="radio" name="widthMode" id="width-fixed" value="fixed">
-                <span>固定</span>
-              </label>
-            </div>
-          </div>
-
-          <div class="setting hidden" id="fixed-row">
-            <span class="setting-label">固定宽度</span>
-            <div class="presets" id="presets"></div>
-            <div class="input-wrap">
-              <input class="input" id="fixed-width" type="number" min="120" max="4096" step="10" value="1280">
-              <span class="unit">px</span>
-            </div>
-          </div>
-
-          <div class="setting">
-            <span class="setting-label">背景</span>
-            <select class="select" id="bg-select"></select>
-            <input class="color-input hidden" id="custom-bg" type="color" value="#22c55e" title="自定义背景色">
-          </div>
-
-          <div class="setting">
-            <span class="setting-label">缩放</span>
-            <select class="select" id="scale-select" title="输出图片的像素密度"></select>
-          </div>
-
-          <div class="setting">
-            <span class="setting-label">格式</span>
-            <select class="select" id="format-select" title="输出图片格式"></select>
-          </div>
-
-          <div class="setting">
-            <span class="setting-label">脚本</span>
-            <label class="switch" title="在沙箱内执行 HTML 中的 JavaScript（与宿主完全隔离）">
-              <input type="checkbox" id="run-scripts">
-              <span class="switch-box"></span>
-              <span class="switch-text">执行 JS</span>
-            </label>
-          </div>
-
-          <details class="adv" id="adv-options">
-            <summary>高级选项 <span class="adv-hint">html-to-image 扩展 · 仅影响导出</span></summary>
-            <div class="adv-grid">
-              <div class="setting">
-                <span class="setting-label">质量</span>
-                <input class="range" id="quality-range" type="range" min="0.5" max="1" step="0.01" value="0.92"
-                  title="JPEG / WebP 输出质量（PNG 无损，不受影响）">
-                <span class="range-val" id="quality-val">92%</span>
-              </div>
-              <div class="setting">
-                <span class="setting-label">字体格式</span>
-                <select class="select" id="font-format" title="@font-face 首选嵌入格式（'' 自动）"></select>
-              </div>
-              <div class="setting">
-                <span class="setting-label">字体嵌入</span>
-                <label class="switch" title="跳过 @font-face 字体嵌入（更快，但自定义字体可能丢失）">
-                  <input type="checkbox" id="skip-fonts">
-                  <span class="switch-box"></span>
-                  <span class="switch-text">跳过嵌入</span>
-                </label>
-              </div>
-              <div class="setting">
-                <span class="setting-label">资源</span>
-                <label class="switch" title="资源 URL 保留查询参数（影响缓存键，默认剥离）">
-                  <input type="checkbox" id="include-params">
-                  <span class="switch-box"></span>
-                  <span class="switch-text">保留查询参数</span>
-                </label>
-                <label class="switch" title="资源 URL 追加时间戳，绕过 HTTP 缓存">
-                  <input type="checkbox" id="cache-bust">
-                  <span class="switch-box"></span>
-                  <span class="switch-text">绕过缓存</span>
-                </label>
-              </div>
-              <div class="setting">
-                <span class="setting-label">占位色</span>
-                <input class="color-input" id="placeholder-color" type="color" value="#e5e7eb"
-                  title="跨域资源加载失败时导出的占位色">
-              </div>
-              <div class="setting setting-wide">
-                <span class="setting-label">字体 CSS</span>
-                <input class="input input-wide" id="font-embed-css" type="text" spellcheck="false"
-                  placeholder="自定义 @font-face CSS，如：@font-face{font-family:X;src:url(...)}"
-                  title="直接指定要嵌入的字体 CSS，覆盖自动检测（留空则自动）">
-              </div>
-              <div class="setting setting-wide">
-                <span class="setting-label">排除元素</span>
-                <input class="input input-wide" id="filter-selector" type="text" spellcheck="false"
-                  placeholder="CSS 选择器，逗号分隔，如：.ad, #banner, [data-hide]"
-                  title="导出时排除匹配的元素（相当于库的 filter 选项，不影响预览）">
-              </div>
-              <div class="setting setting-wide">
-                <span class="setting-label">附加样式</span>
-                <input class="input input-wide" id="extra-style" type="text" spellcheck="false"
-                  placeholder="CSS 声明，如：font-family: Arial; font-size: 16px"
-                  title="导出时应用到根元素的样式（相当于库的 style 选项，不影响预览）">
-              </div>
-            </div>
-          </details>
-        </div>
       </section>
 
     </main>
@@ -217,6 +255,6 @@
   <div class="toasts" id="toasts" aria-live="polite"></div>
 
   <noscript>本工具需要启用 JavaScript 才能运行。</noscript>
-  <script type="module" src="js/main.js?v=8"></script>
+  <script type="module" src="js/main.js?v=9"></script>
 </body>
 </html>

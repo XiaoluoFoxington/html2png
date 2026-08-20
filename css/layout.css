@@ -5,6 +5,9 @@
   height: 100vh;
   display: grid;
   grid-template-rows: var(--header-h) 1fr;
+  /* 显式单列并允许收缩：防止子项（编辑器长行）把页面整体撑宽 */
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
 }
 
 /* ---------- 顶栏 ---------- */
@@ -16,6 +19,8 @@
   padding: 0 16px;
   background: var(--bg-raise);
   border-bottom: 1px solid var(--border);
+  /* 窄屏下控件较多时允许内部横向滚动，避免撑破页面布局 */
+  overflow-x: auto;
 }
 
 .brand {
@@ -39,12 +44,16 @@
   letter-spacing: 0.02em;
   line-height: 1.2;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .brand p {
   font-size: 12px;
   color: var(--text-dim);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .header-actions {
@@ -60,10 +69,13 @@
 /* ---------- 主体 ---------- */
 .app-body {
   display: grid;
-  grid-template-columns: minmax(380px, 5fr) minmax(440px, 6fr);
+  /* minmax(0, 1fr)：严格等分两栏，防止编辑器/预览的
+     内容固有宽度（min-content）把某一栏撑宽 */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 12px;
   padding: 12px;
   min-height: 0;
+  min-width: 0;
 }
 
 .panel {
@@ -106,7 +118,7 @@
     min-height: 100vh;
   }
   .app-body {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .panel {
     min-height: 420px;

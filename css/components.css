@@ -1,6 +1,6 @@
 /* ============================================================
    components.css — 按钮、选择框、输入框、分段控件、开关、
-                    提示条、错误横幅、预设对话框
+                    提示条、错误横幅、预设对话框、标签页、关于页
    ============================================================ */
 
 /* ---------- 按钮 ---------- */
@@ -371,4 +371,105 @@ kbd {
   background: var(--bg-inset);
   border: 1px solid var(--border-strong);
   border-bottom-width: 2px;
+}
+
+/* ---------- 标签页（Tabs） ---------- */
+.tabs {
+  display: flex;
+  flex: none;
+  background: var(--bg-raise);
+  border-bottom: 1px solid var(--border);
+}
+
+.tab {
+  position: relative;
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  background: transparent;
+  border-right: 1px solid var(--border);
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.15s var(--ease), background 0.15s var(--ease);
+}
+.tab:hover {
+  color: var(--text);
+}
+.tab.is-active {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.tab.is-active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--accent);
+}
+
+.tab-panel {
+  display: none;
+}
+.tab-panel.is-active {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.tab-panel[data-panel="config"],
+.tab-panel[data-panel="about"] {
+  overflow-y: auto;
+}
+
+/* ---------- 关于页 ---------- */
+.about {
+  padding: 18px 20px 24px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: var(--text);
+}
+.about h3 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+}
+.about h3:not(:first-child) {
+  margin-top: 24px;
+}
+.about ol,
+.about ul {
+  margin: 0;
+  padding-left: 22px;
+}
+.about li {
+  margin-bottom: 5px;
+}
+.about-keys {
+  width: 100%;
+  border-collapse: collapse;
+}
+.about-keys td {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.about-keys td:first-child {
+  padding-right: 18px;
+  white-space: nowrap;
+}
+.about-links li {
+  margin-bottom: 8px;
+}
+.about-note {
+  margin-top: 20px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-faint);
 }
