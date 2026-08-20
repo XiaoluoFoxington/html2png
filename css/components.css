@@ -373,42 +373,38 @@ kbd {
   border-bottom-width: 2px;
 }
 
-/* ---------- 标签页（Tabs） ---------- */
+/* ---------- 标签页（Tabs） ----------
+   选中标签与内容面板融为一体（底边框取内容面板背景色），
+   未选中标签保留灰色底边分隔。 */
 .tabs {
   display: flex;
   flex: none;
-  background: var(--bg-raise);
-  border-bottom: 1px solid var(--border);
+  background: transparent;
+  padding: 8px 8px 0;
 }
 
 .tab {
-  position: relative;
-  padding: 10px 20px;
+  padding: 8px 18px;
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.06em;
   color: var(--text-dim);
   background: transparent;
-  border-right: 1px solid var(--border);
+  border: 1px solid var(--border);
+  /* 相邻标签边框合并、底边下沉 1px 与内容面板衔接 */
+  margin: 0 -1px -1px 0;
   cursor: pointer;
   user-select: none;
-  transition: color 0.15s var(--ease), background 0.15s var(--ease);
+  transition: color 0.15s var(--ease), background 0.15s var(--ease),
+    border-color 0.15s var(--ease);
 }
 .tab:hover {
   color: var(--text);
 }
 .tab.is-active {
   color: var(--accent);
-  background: var(--accent-soft);
-}
-.tab.is-active::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -1px;
-  height: 2px;
-  background: var(--accent);
+  background: var(--bg-panel); /* 与内容面板同色 → 融为一体 */
+  border-bottom-color: var(--bg-panel); /* 视觉上去掉下边框 */
 }
 
 .tab-panel {

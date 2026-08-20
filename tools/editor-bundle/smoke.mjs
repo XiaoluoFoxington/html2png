@@ -102,6 +102,24 @@ try {
     [...document.querySelectorAll("#main-tabs .tab")].map((t) => t.dataset.tab).join(","));
   check("左栏包含代码/配置/关于三个标签", tabNames === "code,config,about", tabNames);
 
+  /* 1b2. 选中标签与内容融为一体（底边框取面板背景色） */
+  const tabStyle = await page.evaluate(() => {
+    const cs = (el, p) => el ? getComputedStyle(el)[p] : null;
+    const active = document.querySelector(".tab.is-active");
+    const inactive = document.querySelector(".tab:not(.is-active)");
+    const panel = document.querySelector('.tab-panel[data-panel="code"]');
+    return {
+      activeBg: cs(active, "backgroundColor"),
+      activeBottom: cs(active, "borderBottomColor"),
+      inactiveBottom: cs(inactive, "borderBottomColor"),
+      panelBg: cs(panel, "backgroundColor"),
+    };
+  });
+  check("选中标签与内容融为一体（无下边框）",
+    tabStyle.activeBottom === tabStyle.activeBg &&
+      tabStyle.inactiveBottom !== tabStyle.activeBottom,
+    `activeBottom=${tabStyle.activeBottom} inactiveBottom=${tabStyle.inactiveBottom}`);
+
   await page.click('#main-tabs .tab[data-tab="config"]');
   await sleep(200);
   const cfgState = await page.evaluate(() => ({
