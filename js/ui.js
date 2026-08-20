@@ -8,7 +8,6 @@ import {
   FORMATS,
   SCALES,
   WIDTH_PRESETS,
-  EXAMPLES,
   FONT_FORMATS,
 } from "./config.js";
 
@@ -17,7 +16,9 @@ import {
  * @param {{
  *   getState:()=>object,
  *   setSetting:(key:string,value:unknown)=>void,
- *   onExample:(html:string)=>void,
+ *   onLoadPreset:(preset:{id:string,name:string,html:string})=>void,
+ *   onSavePreset:(name:string)=>void,
+ *   onDeletePreset:(id:string)=>void,
  *   onClear:()=>void,
  *   actions:{download:()=>void, copy:()=>void},
  * }} deps
@@ -25,13 +26,21 @@ import {
 export function createUi({
   getState,
   setSetting,
-  onExample,
+  onLoadPreset,
+  onSavePreset,
+  onDeletePreset,
   onClear,
   actions,
 }) {
   /* ---------- 元素 ---------- */
   const el = {
-    example: $("#example-select"),
+    presetSelect: $("#preset-select"),
+    savePreset: $("#btn-save-preset"),
+    delPreset: $("#btn-del-preset"),
+    presetDialog: $("#preset-dialog"),
+    presetForm: $("#preset-form"),
+    presetName: $("#preset-name"),
+    presetCancel: $("#preset-cancel"),
     clear: $("#btn-clear"),
     download: $("#btn-download"),
     copy: $("#btn-copy"),
@@ -98,12 +107,6 @@ export function createUi({
     chip.textContent = w;
     el.presets.appendChild(chip);
   });
-  EXAMPLES.forEach((ex) => {
-    const opt = document.createElement("option");
-    opt.value = ex.name;
-    opt.textContent = ex.name;
-    el.example.appendChild(opt);
-  });
 
   /* ---------- 同步控件到状态 ---------- */
   function syncControls() {
@@ -137,12 +140,68 @@ export function createUi({
     el.extraStyle.value = st.extraStyle || "";
   }
 
-  /* ---------- 事件绑定 ---------- */
-  el.example.addEventListener("change", () => {
-    if (!el.example.value) return;
-    onExample(el.example.value);
-    el.example.value = "";
+  /* ---------- 预设（本地存储） ---------- */
+  let presetList = [];
+
+  /**
+   * 用预设列表重建下拉框。
+   * @param {object[]} list
+   * @param {string|null} selectedId 选中项 id（如刚保存/加载的预设）
+   */
+  function renderPresets(list, selectedId = null) {
+    presetList = Array.isArray(list) ? list : [];
+    el.presetSelect.innerHTML = "";
+    const ph = document.createElement("option");
+    ph.value = "";
+    ph.textContent = "预设…";
+    el.presetSelect.appendChild(ph);
+    presetList.forEach((p) => {
+      const opt = document.createElement("option");
+      opt.value = p.id;
+      opt.textContent = p.name;
+      el.presetSelect.appendChild(opt);
+    });
+    const hasSel = presetList.some((p) => p.id === selectedId);
+    el.presetSelect.value = hasSel ? selectedId : "";
+    el.delPreset.disabled = !hasSel;
+  }
+
+  /** 编辑器内容被用户修改后调用：取消当前预设选中态 */
+  function clearPresetSelection() {
+    el.presetSelect.value = "";
+    el.delPreset.disabled = true;
+  }
+
+  el.presetSelect.addEventListener("change", () => {
+    const preset = presetList.find((p) => p.id === el.presetSelect.value);
+    if (preset) onLoadPreset(preset);
   });
+
+  el.savePreset.addEventListener("click", () => {
+    el.presetName.value = "";
+    el.presetDialog.showModal();
+    el.presetName.focus();
+  });
+  el.presetCancel.addEventListener("click", () => el.presetDialog.close());
+  el.presetForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const name = el.presetName.value.trim();
+    if (!name) {
+      el.presetName.focus();
+      return;
+    }
+    onSavePreset(name);
+    el.presetDialog.close();
+  });
+
+  el.delPreset.addEventListener("click", () => {
+    const preset = presetList.find((p) => p.id === el.presetSelect.value);
+    if (!preset) return;
+    if (!confirm(`确定删除预设「${preset.name}」？`)) return;
+    onDeletePreset(preset.id);
+  });
+
+  /* ---------- 事件绑定 ---------- */
   el.clear.addEventListener("click", onClear);
   el.download.addEventListener("click", () => actions.download());
   el.copy.addEventListener("click", () => actions.copy());
@@ -276,5 +335,15 @@ export function createUi({
   syncControls();
   updateStats(null);
 
-  return { toast, showError, hideError, setOverlay, setEmpty, updateStats, syncControls };
+  return {
+    toast,
+    showError,
+    hideError,
+    setOverlay,
+    setEmpty,
+    updateStats,
+    syncControls,
+    renderPresets,
+    clearPresetSelection,
+  };
 }

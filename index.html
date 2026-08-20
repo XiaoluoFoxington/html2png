@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="css/tokens.css?v=5">
   <link rel="stylesheet" href="css/base.css?v=5">
   <link rel="stylesheet" href="css/layout.css?v=5">
-  <link rel="stylesheet" href="css/components.css?v=5">
+  <link rel="stylesheet" href="css/components.css?v=7">
   <link rel="stylesheet" href="css/editor.css?v=6">
   <link rel="stylesheet" href="css/preview.css?v=5">
 </head>
@@ -27,9 +27,11 @@
         </div>
       </div>
       <div class="header-actions">
-        <select id="example-select" class="select" title="加载示例模板">
-          <option value="">示例模板…</option>
+        <select id="preset-select" class="select" title="加载已保存的预设">
+          <option value="">预设…</option>
         </select>
+        <button id="btn-save-preset" class="btn btn-ghost" type="button" title="把当前代码保存为预设">保存预设</button>
+        <button id="btn-del-preset" class="btn btn-ghost" type="button" title="删除当前选中的预设" disabled>删除</button>
         <button id="btn-clear" class="btn btn-ghost" type="button">清空</button>
         <button id="btn-copy" class="btn btn-ghost" type="button">复制图片</button>
         <button id="btn-download" class="btn btn-primary" type="button">下载图片</button>
@@ -192,9 +194,23 @@
 
   </div>
 
+  <!-- 保存预设对话框 -->
+  <dialog id="preset-dialog" class="preset-dialog">
+    <form id="preset-form" class="preset-form">
+      <h3>保存预设</h3>
+      <p class="preset-hint">将当前代码框中的 HTML 保存为预设，之后可从顶栏「预设…」下拉框一键加载。</p>
+      <input id="preset-name" class="input preset-name" type="text" maxlength="40"
+        placeholder="预设名称" autocomplete="off" spellcheck="false">
+      <div class="preset-actions">
+        <button type="button" class="btn btn-ghost" id="preset-cancel">取消</button>
+        <button type="submit" class="btn btn-primary" id="preset-ok">保存</button>
+      </div>
+    </form>
+  </dialog>
+
   <div class="toasts" id="toasts" aria-live="polite"></div>
 
   <noscript>本工具需要启用 JavaScript 才能运行。</noscript>
-  <script type="module" src="js/main.js?v=6"></script>
+  <script type="module" src="js/main.js?v=7"></script>
 </body>
 </html>

@@ -27,7 +27,8 @@
   - **附加样式**：导出时应用到根元素的 CSS 声明（如 `font-family: Arial`）
 - **安全沙箱**：预览运行在 `<iframe sandbox="allow-scripts">` 中（不透明源），
   与宿主页面完全隔离；默认剥离用户 HTML 中的脚本，可手动开启「执行 JS」
-- **示例模板**：状态卡片、数据面板、价格卡片、表格、按钮组、GitHub 卡片
+- **用户预设**：把当前代码框中的 HTML 命名保存为预设（存于 localStorage），
+  之后从顶栏下拉框一键加载；支持覆盖保存与删除
 - **复制到剪贴板**：一键复制 PNG，直接粘贴到聊天 / 文档
 - **本地记忆**：HTML 与设置自动保存到 localStorage，刷新不丢失
 - **快捷键**：`Ctrl/Cmd + Enter` 快速下载
@@ -66,8 +67,9 @@ html2png/
 │   └── preview.css         # 预览舞台 / 设置 / 统计
 ├── js/
 │   ├── main.js             # 入口：状态、装配、调度
-│   ├── config.js           # 默认值 / 示例模板 / 常量
+│   ├── config.js           # 默认值 / 常量
 │   ├── utils.js            # 通用工具
+│   ├── presets.js          # 用户预设（localStorage 读写）
 │   ├── editor.js           # 代码编辑器（CodeMirror 6：高亮 / 折叠 / 查找 / 快捷键）
 │   ├── preview.js          # 沙箱 iframe 与渲染协议
 │   ├── capture.js          # 下载 / 剪贴板
@@ -127,7 +129,7 @@ PNG」全流程渲染，并校验输出图片的尺寸与中心像素颜色。�
 中打开该页面即可查看结果（渲染管线会给出 `PASS` / `FAIL` 结论）。
 
 编辑器集成还有自动化冒烟测试（无头浏览器驱动，覆盖加载 / 高亮 /
-示例切换 / 清空 / 输入 / 持久化 / Ctrl+Enter 下载）：
+预设保存-加载-删除 / 清空 / 输入 / 持久化 / Ctrl+Enter 下载）：
 
 ```bash
 cd tools/editor-bundle && npm run smoke

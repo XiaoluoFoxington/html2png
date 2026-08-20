@@ -3,7 +3,7 @@
    ------------------------------------------------------------
    用法：cd tools/editor-bundle && npm install && npm run smoke
    依赖系统 Edge/Chrome；自动启动本地服务器、跑完即关。
-   校验：加载无错误 / 高亮生效 / 示例切换 / 清空 / 输入 /
+   校验：加载无错误 / 高亮生效 / 预设保存-加载-删除 / 清空 / 输入 /
    localStorage 持久化 / Ctrl+Enter 下载全链路。
    ============================================================ */
 
@@ -110,11 +110,56 @@ try {
 
   await page.screenshot({ path: join(shotDir, "1-initial.png") });
 
-  /* 2. 示例切换 */
-  await page.select("#example-select", "数据面板");
+  /* 2. 预设：保存当前代码 → 清空 → 从下拉框加载 → 删除 */
+  await page.click(".cm-content");
+  await page.keyboard.type("<h1>preset-demo</h1>");
+  await sleep(300);
+
+  await page.click("#btn-save-preset");
+  await page.waitForSelector("#preset-dialog[open]", { timeout: 5000 });
+  await page.$eval("#preset-name", (el) => { el.value = "测试预设"; });
+  await page.click("#preset-ok");
+  await sleep(300);
+
+  const savedRaw = await page.evaluate(() => {
+    try { return localStorage.getItem("html2png.presets.v1") || ""; } catch { return ""; }
+  });
+  check("预设已写入 localStorage", savedRaw.includes("preset-demo"), `len=${savedRaw.length}`);
+
+  await page.click("#btn-clear");
+  await sleep(200);
+  const clearedDoc = await page.evaluate(() =>
+    document.querySelector(".cm-content").textContent);
+  check("清空后代码为空", !clearedDoc.includes("preset-demo"),
+    `doc=${JSON.stringify(clearedDoc.slice(0, 60))}`);
+
+  const presetId = await page.evaluate(() => {
+    const sel = document.querySelector("#preset-select");
+    const opt = [...sel.options].find((o) => o.textContent === "测试预设");
+    return opt ? opt.value : null;
+  });
+  check("预设出现在下拉框", !!presetId, presetId || "未找到「测试预设」选项");
+
+  await page.select("#preset-select", presetId);
   await sleep(400);
-  const exDoc = await page.evaluate(() => document.querySelector(".cm-content").textContent);
-  check("示例切换生效（数据面板）", exDoc.includes("数据总览"), `doc=${exDoc.length}字`);
+  const presetDoc = await page.evaluate(() =>
+    document.querySelector(".cm-content").textContent);
+  check("预设加载生效（恢复代码）", presetDoc.includes("preset-demo"), `doc=${presetDoc.length}字`);
+
+  const dialogPromise = new Promise((resolve) =>
+    page.once("dialog", (d) => { resolve(d.message()); d.accept(); }));
+  await page.click("#btn-del-preset");
+  const confirmMsg = await Promise.race([
+    dialogPromise,
+    sleep(3000).then(() => "TIMEOUT"),
+  ]);
+  check("删除确认框弹出", confirmMsg !== "TIMEOUT", String(confirmMsg).slice(0, 40));
+  await sleep(200);
+  const afterDelete = await page.evaluate(() => {
+    const sel = document.querySelector("#preset-select");
+    return ![...sel.options].some((o) => o.textContent === "测试预设");
+  });
+  check("删除预设（确认后从列表移除）", afterDelete);
 
   /* 3. 清空 → 占位符 + 空状态
      （注意：CM6 占位符是 .cm-content 的子节点，空文档时
@@ -128,7 +173,7 @@ try {
     emptyShown: !document.querySelector("#stage-empty").classList.contains("hidden"),
   }), PLACEHOLDER);
   check("清空后文档为空（占位符出现）",
-    cleared.hasPlaceholderText && !cleared.doc.includes("数据总览"),
+    cleared.hasPlaceholderText && !cleared.doc.includes("preset-demo"),
     `doc=${JSON.stringify(cleared.doc.slice(0, 60))}`);
   check("占位符元素存在", cleared.placeholderVisible);
   await sleep(1200); // 等待预览重建

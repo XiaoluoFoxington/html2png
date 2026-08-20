@@ -5,10 +5,10 @@
 import {
   DEFAULTS,
   DEFAULT_HTML,
-  EXAMPLES,
   STORAGE_KEY,
 } from "./config.js";
 import { loadStore, saveStore, debounce } from "./utils.js";
+import { loadPresets, savePresets, upsertPreset, removePreset } from "./presets.js";
 import { createEditor } from "./editor.js";
 import { createPreview } from "./preview.js";
 import { createCapture } from "./capture.js";
@@ -58,7 +58,9 @@ const actions = {};
 const ui = createUi({
   getState: () => state,
   setSetting,
-  onExample,
+  onLoadPreset,
+  onSavePreset,
+  onDeletePreset,
   onClear,
   actions,
 });
@@ -93,6 +95,7 @@ const editor = createEditor($editor, {
     state.html = value;
     scheduleRebuild();
     persist();
+    ui.clearPresetSelection(); // 内容已偏离当前预设
   },
   onQuickRun: actions.download,
 });
@@ -148,14 +151,45 @@ function setSetting(key, value) {
   }
 }
 
-/* ---------- 示例 / 清空 ---------- */
-function onExample(name) {
-  const ex = EXAMPLES.find((e) => e.name === name);
-  if (!ex) return;
-  state.html = ex.html;
-  editor.setValue(ex.html);
+/* ---------- 预设 / 清空 ---------- */
+let presets = loadPresets();
+
+/** 从下拉框加载预设：把其代码写入编辑器 */
+function onLoadPreset(preset) {
+  if (!preset || typeof preset.html !== "string") return;
+  state.html = preset.html;
+  editor.setValue(preset.html);
   scheduleRebuild();
   persist();
+  ui.renderPresets(presets, preset.id); // 保持选中态，删除按钮可用
+}
+
+/** 把当前代码保存为预设（同名覆盖，需确认） */
+function onSavePreset(name) {
+  if (!state.html || !state.html.trim()) {
+    ui.toast("代码为空，无法保存预设", "warn");
+    return;
+  }
+  const existing = presets.find((p) => p.name === name);
+  if (existing && !confirm(`预设「${name}」已存在，是否覆盖？`)) return;
+  const { list, preset } = upsertPreset(presets, {
+    id: existing ? existing.id : null,
+    name,
+    html: state.html,
+  });
+  presets = list;
+  savePresets(presets);
+  ui.renderPresets(presets, preset.id);
+  ui.toast(`已保存预设「${preset.name}」`);
+}
+
+/** 删除选中预设 */
+function onDeletePreset(id) {
+  const target = presets.find((p) => p.id === id);
+  presets = removePreset(presets, id);
+  savePresets(presets);
+  ui.renderPresets(presets, null);
+  ui.toast(target ? `已删除预设「${target.name}」` : "已删除预设", "warn");
 }
 
 function onClear() {
@@ -165,5 +199,6 @@ function onClear() {
 /* ---------- 启动 ---------- */
 editor.setValue(state.html);
 ui.syncControls();
+ui.renderPresets(presets, null);
 ui.setOverlay("加载预览…");
 preview.rebuild(state);
