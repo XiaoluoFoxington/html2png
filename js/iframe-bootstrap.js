@@ -90,17 +90,60 @@
   window.addEventListener("resize", reportSize);
 
   /* ---------- 占位像素（跨域图片加载失败时使用） ---------- */
-  var pixelCache = null;
-  function pixel() {
-    if (pixelCache) return pixelCache;
+  var pixelCache = {};
+  function pixel(color) {
+    color = color || "#e5e7eb";
+    if (pixelCache[color]) return pixelCache[color];
     var c = document.createElement("canvas");
     c.width = 1;
     c.height = 1;
     var ctx = c.getContext("2d");
-    ctx.fillStyle = "#e5e7eb";
+    ctx.fillStyle = color;
     ctx.fillRect(0, 0, 1, 1);
-    pixelCache = c.toDataURL("image/png");
-    return pixelCache;
+    pixelCache[color] = c.toDataURL("image/png");
+    return pixelCache[color];
+  }
+
+  /* ---------- 高级选项解析（html-to-image 扩展） ---------- */
+  // 把 "prop: value; prop2: value2" 解析为 style 对象（kebab-case → camelCase）
+  function parseStyleText(css) {
+    var out = {};
+    if (!css) return out;
+    String(css)
+      .split(";")
+      .forEach(function (decl) {
+        var idx = decl.indexOf(":");
+        if (idx < 0) return;
+        var prop = decl.slice(0, idx).trim();
+        var val = decl.slice(idx + 1).trim();
+        if (!prop || !val) return;
+        prop = prop.replace(/-([a-z])/g, function (_, c) {
+          return c.toUpperCase();
+        });
+        out[prop] = val;
+      });
+    return out;
+  }
+
+  // 根据选择器构建 filter：匹配的元素及其子树不进入导出
+  function buildFilter(sel) {
+    if (!sel) return null;
+    try {
+      // 校验选择器合法性（非法时静默忽略该选项）
+      document.createDocumentFragment().querySelector(sel);
+    } catch (err) {
+      return null;
+    }
+    return function (node) {
+      if (!node || node.nodeType !== 1 || typeof node.matches !== "function") {
+        return true;
+      }
+      try {
+        return !node.matches(sel);
+      } catch (err) {
+        return true;
+      }
+    };
   }
 
   /* ---------- 渲染 ---------- */
@@ -116,8 +159,11 @@
   }
 
   function render(opts) {
-    var scale = Math.min(4, Math.max(0.5, Number(opts && opts.scale) || 1));
-    var format = opts && opts.format;
+    opts = opts || {};
+    var scale = Math.min(4, Math.max(0.5, Number(opts.scale) || 1));
+    var format = opts.format;
+    var quality = Number(opts.quality);
+    if (!(quality >= 0.1 && quality <= 1)) quality = 0.92;
     var de = document.documentElement;
 
     // 透明模式下预览画布上有棋盘格背景（见 preview.js 注入的样式）；
@@ -130,6 +176,32 @@
       if (needsFlat) de.classList.remove("h2p-flat");
     }
 
+    // 由高级选项组装 html-to-image 的 options（未设置的键不传，
+    // 保持库的默认行为）
+    function buildToCanvasOptions(m) {
+      var o = {
+        width: m.width,
+        height: m.height,
+        pixelRatio: scale,
+        backgroundColor: null,
+        imagePlaceholder: pixel(opts.placeholderColor),
+        cacheBust: !!opts.cacheBust,
+        skipAutoScale: true,
+        fetchRequestInit: { mode: "cors", credentials: "omit" },
+      };
+      if (opts.skipFonts) o.skipFonts = true;
+      if (opts.fontEmbedCSS) o.fontEmbedCSS = opts.fontEmbedCSS;
+      if (opts.preferredFontFormat) {
+        o.preferredFontFormat = opts.preferredFontFormat;
+      }
+      if (opts.includeQueryParams) o.includeQueryParams = true;
+      var filter = buildFilter(opts.filterSelector);
+      if (filter) o.filter = filter;
+      var style = parseStyleText(opts.extraStyle);
+      if (Object.keys(style).length) o.style = style;
+      return o;
+    }
+
     return (function () {
       // 等待字体加载完成，避免文字字形缺失
       var fontsReady =
@@ -139,20 +211,11 @@
       return fontsReady.then(function () {
         var m = measure();
         return lib
-          .toCanvas(de, {
-            width: m.width,
-            height: m.height,
-            pixelRatio: scale,
-            backgroundColor: null,
-            imagePlaceholder: pixel(),
-            cacheBust: false,
-            skipAutoScale: true,
-            fetchRequestInit: { mode: "cors", credentials: "omit" },
-          })
+          .toCanvas(de, buildToCanvasOptions(m))
           .then(function (canvas) {
             var dataUrl;
-            if (format === "jpeg") dataUrl = canvas.toDataURL("image/jpeg", 0.92);
-            else if (format === "webp") dataUrl = canvas.toDataURL("image/webp", 0.9);
+            if (format === "jpeg") dataUrl = canvas.toDataURL("image/jpeg", quality);
+            else if (format === "webp") dataUrl = canvas.toDataURL("image/webp", quality);
             else dataUrl = canvas.toDataURL("image/png");
             if (!dataUrl || dataUrl.length < 24) throw new Error("画布输出为空");
             return dataUrl;

@@ -125,6 +125,66 @@
               <span class="switch-text">执行 JS</span>
             </label>
           </div>
+
+          <details class="adv" id="adv-options">
+            <summary>高级选项 <span class="adv-hint">html-to-image 扩展 · 仅影响导出</span></summary>
+            <div class="adv-grid">
+              <div class="setting">
+                <span class="setting-label">质量</span>
+                <input class="range" id="quality-range" type="range" min="0.5" max="1" step="0.01" value="0.92"
+                  title="JPEG / WebP 输出质量（PNG 无损，不受影响）">
+                <span class="range-val" id="quality-val">92%</span>
+              </div>
+              <div class="setting">
+                <span class="setting-label">字体格式</span>
+                <select class="select" id="font-format" title="@font-face 首选嵌入格式（'' 自动）"></select>
+              </div>
+              <div class="setting">
+                <span class="setting-label">字体嵌入</span>
+                <label class="switch" title="跳过 @font-face 字体嵌入（更快，但自定义字体可能丢失）">
+                  <input type="checkbox" id="skip-fonts">
+                  <span class="switch-box"></span>
+                  <span class="switch-text">跳过嵌入</span>
+                </label>
+              </div>
+              <div class="setting">
+                <span class="setting-label">资源</span>
+                <label class="switch" title="资源 URL 保留查询参数（影响缓存键，默认剥离）">
+                  <input type="checkbox" id="include-params">
+                  <span class="switch-box"></span>
+                  <span class="switch-text">保留查询参数</span>
+                </label>
+                <label class="switch" title="资源 URL 追加时间戳，绕过 HTTP 缓存">
+                  <input type="checkbox" id="cache-bust">
+                  <span class="switch-box"></span>
+                  <span class="switch-text">绕过缓存</span>
+                </label>
+              </div>
+              <div class="setting">
+                <span class="setting-label">占位色</span>
+                <input class="color-input" id="placeholder-color" type="color" value="#e5e7eb"
+                  title="跨域资源加载失败时导出的占位色">
+              </div>
+              <div class="setting setting-wide">
+                <span class="setting-label">字体 CSS</span>
+                <input class="input input-wide" id="font-embed-css" type="text" spellcheck="false"
+                  placeholder="自定义 @font-face CSS，如：@font-face{font-family:X;src:url(...)}"
+                  title="直接指定要嵌入的字体 CSS，覆盖自动检测（留空则自动）">
+              </div>
+              <div class="setting setting-wide">
+                <span class="setting-label">排除元素</span>
+                <input class="input input-wide" id="filter-selector" type="text" spellcheck="false"
+                  placeholder="CSS 选择器，逗号分隔，如：.ad, #banner, [data-hide]"
+                  title="导出时排除匹配的元素（相当于库的 filter 选项，不影响预览）">
+              </div>
+              <div class="setting setting-wide">
+                <span class="setting-label">附加样式</span>
+                <input class="input input-wide" id="extra-style" type="text" spellcheck="false"
+                  placeholder="CSS 声明，如：font-family: Arial; font-size: 16px"
+                  title="导出时应用到根元素的样式（相当于库的 style 选项，不影响预览）">
+              </div>
+            </div>
+          </details>
         </div>
       </section>
 

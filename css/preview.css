@@ -97,7 +97,7 @@
   max-width: none; /* 固定宽度模式下内容可超出可视区，靠滚动区横向滚动 */
   min-width: 0;
   min-height: 0;
-  border: 1px solid var(--border-strong);
+  border: none; /* 这是我（用户）自己改的，别再改回去了！ */
   background: transparent;
   box-shadow: var(--shadow-2);
   transition: width 0.2s var(--ease), height 0.2s var(--ease);
@@ -183,6 +183,83 @@
 
 .setting .presets {
   flex: 1;
+}
+
+/* ---------- 高级选项（html-to-image 扩展） ---------- */
+.adv {
+  grid-column: 1 / -1;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-inset);
+}
+
+.adv summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--text-dim);
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+.adv summary::-webkit-details-marker {
+  display: none;
+}
+.adv summary::before {
+  content: "▸";
+  color: var(--accent);
+  font-size: 10px;
+  transition: transform 0.15s var(--ease);
+}
+.adv[open] summary::before {
+  transform: rotate(90deg);
+}
+.adv summary:hover {
+  color: var(--text);
+}
+.adv-hint {
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+.adv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px 18px;
+  padding: 4px 12px 12px;
+  border-top: 1px solid var(--border);
+}
+
+.adv-grid .setting {
+  align-items: center;
+}
+.setting-wide {
+  grid-column: 1 / -1;
+}
+
+.range {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--accent);
+}
+.setting.is-muted {
+  opacity: 0.45;
+  pointer-events: none;
+}
+.range-val {
+  flex: none;
+  min-width: 40px;
+  text-align: right;
+  font-size: 12px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.input-wide {
+  flex: 1;
+  width: auto;
+  min-width: 0;
 }
 
 /* ---------- 统计信息 ---------- */

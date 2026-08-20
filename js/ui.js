@@ -9,6 +9,7 @@ import {
   SCALES,
   WIDTH_PRESETS,
   EXAMPLES,
+  FONT_FORMATS,
 } from "./config.js";
 
 /**
@@ -44,6 +45,16 @@ export function createUi({
     scale: $("#scale-select"),
     format: $("#format-select"),
     runScripts: $("#run-scripts"),
+    qualityRange: $("#quality-range"),
+    qualityVal: $("#quality-val"),
+    fontFormat: $("#font-format"),
+    skipFonts: $("#skip-fonts"),
+    includeParams: $("#include-params"),
+    cacheBust: $("#cache-bust"),
+    placeholderColor: $("#placeholder-color"),
+    fontEmbedCss: $("#font-embed-css"),
+    filterSelector: $("#filter-selector"),
+    extraStyle: $("#extra-style"),
     stats: $("#stats"),
     banner: $("#error-banner"),
     errMsg: $("#err-msg"),
@@ -72,6 +83,12 @@ export function createUi({
     opt.value = String(s);
     opt.textContent = `${s}×`;
     el.scale.appendChild(opt);
+  });
+  FONT_FORMATS.forEach((f) => {
+    const opt = document.createElement("option");
+    opt.value = f.value;
+    opt.textContent = f.label;
+    el.fontFormat.appendChild(opt);
   });
   WIDTH_PRESETS.forEach((w) => {
     const chip = document.createElement("button");
@@ -104,6 +121,20 @@ export function createUi({
     el.scale.value = String(st.scale);
     el.format.value = st.format;
     el.runScripts.checked = st.runScripts;
+    el.qualityRange.value = String(st.quality);
+    el.qualityVal.textContent = `${Math.round(st.quality * 100)}%`;
+    el.qualityRange.closest(".setting").classList.toggle(
+      "is-muted",
+      st.format === "png"
+    );
+    el.fontFormat.value = st.preferredFontFormat;
+    el.skipFonts.checked = st.skipFonts;
+    el.includeParams.checked = st.includeQueryParams;
+    el.cacheBust.checked = st.cacheBust;
+    el.placeholderColor.value = st.placeholderColor;
+    el.fontEmbedCss.value = st.fontEmbedCSS || "";
+    el.filterSelector.value = st.filterSelector || "";
+    el.extraStyle.value = st.extraStyle || "";
   }
 
   /* ---------- 事件绑定 ---------- */
@@ -144,9 +175,47 @@ export function createUi({
   el.scale.addEventListener("change", () =>
     setSetting("scale", Number(el.scale.value))
   );
-  el.format.addEventListener("change", () => setSetting("format", el.format.value));
+  el.format.addEventListener("change", () => {
+    setSetting("format", el.format.value);
+    // PNG 无损：质量滑块置灰
+    el.qualityRange.closest(".setting").classList.toggle(
+      "is-muted",
+      el.format.value === "png"
+    );
+  });
   el.runScripts.addEventListener("change", () =>
     setSetting("runScripts", el.runScripts.checked)
+  );
+
+  /* ---------- 高级选项（html-to-image 扩展，仅影响导出） ---------- */
+  el.qualityRange.addEventListener("input", () => {
+    const v = Number(el.qualityRange.value);
+    el.qualityVal.textContent = `${Math.round(v * 100)}%`;
+    setSetting("quality", v);
+  });
+  el.fontFormat.addEventListener("change", () =>
+    setSetting("preferredFontFormat", el.fontFormat.value)
+  );
+  el.skipFonts.addEventListener("change", () =>
+    setSetting("skipFonts", el.skipFonts.checked)
+  );
+  el.includeParams.addEventListener("change", () =>
+    setSetting("includeQueryParams", el.includeParams.checked)
+  );
+  el.cacheBust.addEventListener("change", () =>
+    setSetting("cacheBust", el.cacheBust.checked)
+  );
+  el.placeholderColor.addEventListener("input", () =>
+    setSetting("placeholderColor", el.placeholderColor.value)
+  );
+  el.fontEmbedCss.addEventListener("input", () =>
+    setSetting("fontEmbedCSS", el.fontEmbedCss.value)
+  );
+  el.filterSelector.addEventListener("input", () =>
+    setSetting("filterSelector", el.filterSelector.value)
+  );
+  el.extraStyle.addEventListener("input", () =>
+    setSetting("extraStyle", el.extraStyle.value)
   );
 
   /* ---------- 错误横幅 ---------- */

@@ -25,6 +25,16 @@ export function createCapture({
     const { dataUrl } = await preview.requestCapture({
       scale: state.scale,
       format: state.format,
+      // html-to-image 扩展选项（仅影响导出）
+      quality: state.quality,
+      skipFonts: state.skipFonts,
+      fontEmbedCSS: state.fontEmbedCSS || undefined,
+      preferredFontFormat: state.preferredFontFormat || undefined,
+      includeQueryParams: state.includeQueryParams,
+      cacheBust: state.cacheBust,
+      placeholderColor: state.placeholderColor,
+      filterSelector: (state.filterSelector || "").trim(),
+      extraStyle: (state.extraStyle || "").trim(),
     });
     return dataUrlToBlob(dataUrl);
   }

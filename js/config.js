@@ -12,6 +12,16 @@ export const DEFAULTS = {
   background: "auto",  // 'auto' | 'transparent' | 'white' | 'black' | 'custom'
   customBg: "#22c55e", // 自定义背景色
   runScripts: false,   // 是否执行用户 HTML 中的 JS
+  // —— html-to-image 扩展选项（仅影响导出，不影响预览）——
+  quality: 0.92,            // JPEG/WebP 输出质量（0.5–1）
+  skipFonts: false,         // 跳过 @font-face 字体嵌入
+  fontEmbedCSS: "",         // 自定义字体嵌入 CSS（覆盖自动检测）
+  preferredFontFormat: "",  // 首选字体格式：'' | woff2 | woff | ttf | otf | eot
+  includeQueryParams: false, // 资源 URL 是否保留查询参数
+  cacheBust: false,          // 资源 URL 追加时间戳绕过缓存
+  placeholderColor: "#e5e7eb", // 跨域资源加载失败时的占位色
+  filterSelector: "",        // 导出时排除的元素（CSS 选择器，逗号分隔）
+  extraStyle: "",            // 导出时附加到根元素的样式（CSS 声明）
 };
 
 /** 自动宽度模式的上下限（px） */
@@ -38,6 +48,16 @@ export const BACKGROUNDS = [
   { value: "white", label: "白色" },
   { value: "black", label: "黑色" },
   { value: "custom", label: "自定义" },
+];
+
+/** 字体嵌入格式选项（'' 表示自动） */
+export const FONT_FORMATS = [
+  { value: "", label: "自动" },
+  { value: "woff2", label: "woff2" },
+  { value: "woff", label: "woff" },
+  { value: "ttf", label: "ttf" },
+  { value: "otf", label: "otf" },
+  { value: "eot", label: "eot" },
 ];
 
 /** 本地存储 key */
@@ -171,6 +191,40 @@ export const EXAMPLES = [
     <div style="background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.4);color:#f87171;padding:10px 22px;">危险操作</div>
   </div>
   <div style="margin-top:22px;font-size:13px;color:#82968a;">直角风格 · 绿色主题 · 深色底</div>
+</div>`,
+  },
+  {
+    name: "GitHub 卡片",
+    html: `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif;background:#ffffff;color:#1f2328;width:560px;box-sizing:border-box;border:1px solid #d0d7de;border-radius:8px;overflow:hidden;">
+  <div style="height:5px;background:linear-gradient(90deg,#f1e05a 0 40%,#e34c26 40% 75%,#563d7c 75% 100%);"></div>
+  <div style="padding:20px 24px 0;">
+    <div style="display:flex;align-items:center;gap:14px;">
+      <div style="width:52px;height:52px;flex-shrink:0;border-radius:8px;background:linear-gradient(135deg,#22c55e,#047857);display:flex;align-items:center;justify-content:center;font-size:24px;color:#ffffff;">&#8681;</div>
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:18px;font-weight:700;color:#0969da;">html2png</span>
+          <span style="font-size:11px;color:#57606a;border:1px solid #d0d7de;border-radius:999px;padding:1px 8px;">Public</span>
+        </div>
+        <div style="font-size:13px;color:#57606a;margin-top:2px;">HTML &rarr; PNG</div>
+      </div>
+    </div>
+    <div style="font-size:14px;color:#1f2328;line-height:1.7;margin-top:14px;">
+      输入 HTML 代码，实时预览并生成 PNG / JPEG / WebP 图片。原生静态前端项目：无框架、无构建步骤，开箱即用；安全沙箱隔离脚本，所见即所得。
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;">
+      <span style="background:#ddf4ff;color:#0969da;font-size:12px;padding:2px 10px;border-radius:999px;">html</span>
+      <span style="background:#ddf4ff;color:#0969da;font-size:12px;padding:2px 10px;border-radius:999px;">png</span>
+      <span style="background:#ddf4ff;color:#0969da;font-size:12px;padding:2px 10px;border-radius:999px;">screenshot</span>
+      <span style="background:#ddf4ff;color:#0969da;font-size:12px;padding:2px 10px;border-radius:999px;">no-build</span>
+      <span style="background:#ddf4ff;color:#0969da;font-size:12px;padding:2px 10px;border-radius:999px;">vanilla-js</span>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px;margin-top:16px;padding:12px 24px;border-top:1px solid #d8dee4;background:#f6f8fa;font-size:13px;color:#57606a;">
+    <span style="display:inline-flex;align-items:center;gap:4px;"><svg width="16" height="16" viewBox="0 0 16 16" fill="#57606a" aria-hidden="true"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/></svg>1.2k</span>
+    <span style="display:inline-flex;align-items:center;gap:4px;"><svg width="16" height="16" viewBox="0 0 16 16" fill="#57606a" aria-hidden="true"><path d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 1 1.5 0v.878a2.25 2.25 0 0 1-2.25 2.25h-1.5v2.128a2.251 2.251 0 1 1-1.5 0V8.5h-1.5A2.25 2.25 0 0 1 3.5 6.25v-.878a2.25 2.25 0 1 1 1.5 0ZM5 3.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm6.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm-3 8.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z"/></svg>86</span>
+    <span style="display:inline-flex;align-items:center;gap:5px;"><span style="width:12px;height:12px;border-radius:50%;background:#f1e05a;"></span>JavaScript</span>
+    <span style="margin-left:auto;">Updated 2 days ago</span>
+  </div>
 </div>`,
   },
 ];
