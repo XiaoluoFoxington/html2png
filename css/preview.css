@@ -97,7 +97,7 @@
   max-width: none; /* 固定宽度模式下内容可超出可视区，靠滚动区横向滚动 */
   min-width: 0;
   min-height: 0;
-  border: 1px solid var(--border-strong);
+  border: none;
   background: transparent;
   box-shadow: var(--shadow-2);
   transition: width 0.2s var(--ease), height 0.2s var(--ease);

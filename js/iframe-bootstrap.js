@@ -33,19 +33,19 @@
     var b = document.body;
     // 不能依赖 scrollHeight/scrollWidth：根元素的滚动尺寸恒不小于视口
     // （初始包含块），会让 iframe 永远无法收缩到内容尺寸。
-    // 用 offset* + getBoundingClientRect 的精确尺寸（向上取整）测量，
-    // 保证视口 ≥ 内容、不出现亚像素溢出（否则透明背景下会露出
-    // iframe 内部的浅色滚动条与白色画布）。
+    // 用 offset* + getBoundingClientRect 的精确尺寸（四舍五入）测量，
+    // 与内容实际渲染高度一致，避免底部出现 1px 透明条；
+    // 亚像素溢出由注入的 overflow:hidden 兜住（不触发 iframe 内滚动条）。
     var r = de.getBoundingClientRect();
     var w = Math.max(
       de.offsetWidth,
       b ? b.offsetWidth : 0,
-      Math.ceil(r.width)
+      Math.round(r.width)
     );
     var h = Math.max(
       de.offsetHeight,
       b ? b.offsetHeight : 0,
-      Math.ceil(r.height)
+      Math.round(r.height)
     );
     // 仅当内容真正溢出视口（超过 1px 容差）时，才采用滚动尺寸。
     if (de.scrollHeight > de.clientHeight + 1) h = Math.max(h, de.scrollHeight);

@@ -56,8 +56,7 @@ async function main() {
     }
   }
   console.log(`[${transparent ? "PASS" : "FAIL"}] 导出透明性（${w}x${h}，棋盘格已剥离）`);
-  iframe.ws.close();
-  if2.ws.close();
+  // 直接退出，避免在关闭 WebSocket 时触发 Node uv 断言
   process.exit(transparent ? 0 : 1);
 }
 main().catch((e) => {

@@ -27,6 +27,9 @@ node verify.mjs [调试端口=9223]     # 全部视觉场景 + 滚动联动，�
 node e2e.mjs [调试端口=9223]        # tests/e2e.html 全流程冒烟（PASS 640x240 ...）
 node export-transparency.mjs [调试端口=9223]  # 导出透明性（棋盘格剥离后 alpha=0）
 node capture.mjs <状态JSON> <输出PNG> [调试端口]  # 单场景截图（等待预览就绪）
+node check-bottom.mjs [调试端口]    # 底边 1px 透明条回归（预览 + 导出）
+node check-overflow.mjs [调试端口]  # 固定宽度溢出：导出按视口裁剪（与预览一致）
+node check-popup.mjs [调试端口]     # 绝对定位弹层溢出边界时导出仍包含其内容
 ```
 
 任一校验失败时退出码为 1。
@@ -37,6 +40,9 @@ node capture.mjs <状态JSON> <输出PNG> [调试端口]  # 单场景截图（�
 | --- | --- |
 | `verify.mjs` | 一键回归：遍历 `states/*.json` 截图 + 像素断言 + 滚动联动断言 |
 | `capture.mjs` | 单场景截图助手（写 localStorage → 重载 → 等 overlay 消失 → 截图） |
+| `check-bottom.mjs` | 底边 1px 透明条回归：小数高度内容（如 285.39px）的预览/导出底边无透明条 |
+| `check-overflow.mjs` | 固定宽度溢出：内容更宽时导出按视口宽度裁剪，与预览/文档一致 |
+| `check-popup.mjs` | 绝对定位弹层溢出内容边界时，测量仍包含弹层（不被 overflow:hidden 裁剪） |
 | `e2e.mjs` | 运行 `../tests/e2e.html` 并读取结果 |
 | `export-transparency.mjs` | 直接走 html-to-image 导出，校验内容外像素 alpha=0 |
 | `cdp.mjs` / `png.mjs` | 极简 CDP 客户端 / PNG 解码器（测试专用） |

@@ -68,7 +68,9 @@ function buildSrcDoc(state, docId) {
   const overrides = [
     // 去掉 body 默认 8px 外边距：预览与导出尺寸一致，且避免透明背景下
     // UA 画布（默认白色）透过 body 边距区域露出白边。
-    "html,body{margin:0!important;}",
+    // overflow:hidden：内容亚像素溢出（如 285.39px vs 视口 285px）时
+    // 直接裁剪而非触发 iframe 内浅色滚动条；预览本身不滚动（滚动在舞台）。
+    "html,body{margin:0!important;overflow:hidden!important;}",
   ];
   if (state.widthMode === "auto") {
     overrides.push(
