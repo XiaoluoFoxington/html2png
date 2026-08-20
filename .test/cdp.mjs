@@ -34,6 +34,19 @@ export async function connect(port) {
   return {
     ws,
     send,
+    /** 优雅关闭（等待 close 事件），避免 Node/Windows 下进程退出时断言崩溃 */
+    async close() {
+      if (ws.readyState === WebSocket.OPEN) {
+        await new Promise((resolve) => {
+          const t = setTimeout(resolve, 500); // 兜底，防 close 事件不触发
+          ws.onclose = () => {
+            clearTimeout(t);
+            resolve();
+          };
+          ws.close();
+        });
+      }
+    },
     /** 连接 iframe target（沙箱 iframe 内部求值用） */
     async attachIframe() {
       const list2 = await (await fetch(`http://127.0.0.1:${port}/json`)).json();
@@ -60,7 +73,22 @@ export async function connect(port) {
           pending2.set(id, { resolve, reject });
           ws2.send(JSON.stringify({ id, method, params }));
         });
-      return { ws: ws2, send: send2 };
+      return {
+        ws: ws2,
+        send: send2,
+        async close() {
+          if (ws2.readyState === WebSocket.OPEN) {
+            await new Promise((resolve) => {
+              const t = setTimeout(resolve, 500);
+              ws2.onclose = () => {
+                clearTimeout(t);
+                resolve();
+              };
+              ws2.close();
+            });
+          }
+        },
+      };
     },
   };
 }

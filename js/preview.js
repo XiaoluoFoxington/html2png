@@ -68,9 +68,7 @@ function buildSrcDoc(state, docId) {
   const overrides = [
     // 去掉 body 默认 8px 外边距：预览与导出尺寸一致，且避免透明背景下
     // UA 画布（默认白色）透过 body 边距区域露出白边。
-    // overflow:hidden：内容亚像素溢出（如 285.39px vs 视口 285px）时
-    // 直接裁剪而非触发 iframe 内浅色滚动条；预览本身不滚动（滚动在舞台）。
-    "html,body{margin:0!important;overflow:hidden!important;}",
+    "html,body{margin:0!important;}",
   ];
   if (state.widthMode === "auto") {
     overrides.push(
@@ -106,14 +104,14 @@ function buildSrcDoc(state, docId) {
 <head>
 <meta charset="utf-8">
 <base href="${base}">
-<script src="vendor/html-to-image.min.js?v=4"></script>
+<script src="vendor/html-to-image.min.js?v=5"></script>
 ${headHTML}
 </head>
 <body>
 ${bodyHTML}
 <style>${overrides.join("\n")}</style>
 <script>window.__H2P_DOC=${JSON.stringify(docId)};</script>
-<script src="js/iframe-bootstrap.js?v=4"></script>
+<script src="js/iframe-bootstrap.js?v=5"></script>
 </body>
 </html>`;
 }

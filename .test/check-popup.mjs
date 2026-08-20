@@ -39,4 +39,6 @@ const res = await iframe.send("Runtime.evaluate", {
   returnByValue: true,
 });
 console.log("iframe 内部：", JSON.stringify(res.result.value));
-process.exit(0);
+await page.close();
+await iframe.close();
+process.exitCode = 0; // 自然退出，避免 Node/Windows WebSocket 断言
