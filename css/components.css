@@ -380,7 +380,6 @@ kbd {
   display: flex;
   flex: none;
   background: transparent;
-  padding: 8px 8px 0;
   border-bottom: 1px solid var(--border);
 }
 
@@ -391,7 +390,7 @@ kbd {
   letter-spacing: 0.06em;
   color: var(--text-dim);
   background: transparent;
-  border: 1px solid var(--border);
+  border-left: 1px solid var(--border);
   border-bottom-color: transparent; /* 未选中：露出容器分隔线 */
   /* 相邻标签边框合并、底边下沉 1px 与容器分隔线对齐 */
   margin: 0 -1px -1px 0;
@@ -399,6 +398,12 @@ kbd {
   user-select: none;
   transition: color 0.15s var(--ease), background 0.15s var(--ease),
     border-color 0.15s var(--ease);
+}
+.tab:first-child{
+  border-left: none;
+}
+.tab:last-child{
+  border-right: 1px solid var(--border);
 }
 .tab:hover {
   color: var(--text);

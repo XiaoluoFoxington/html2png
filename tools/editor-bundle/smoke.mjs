@@ -5,7 +5,7 @@
    依赖系统 Edge/Chrome；自动启动本地服务器、跑完即关。
    校验：加载无错误 / 高亮生效 / 左栏标签页切换 / 预设保存-加载-删除 /
    自动刷新与手动刷新 / 清空 / 输入 / localStorage 持久化 /
-   Ctrl+Enter 下载全链路。
+   Ctrl+Enter 下载 / 手机视口响应式。
    ============================================================ */
 
 import puppeteer from "puppeteer-core";
@@ -359,6 +359,27 @@ try {
   /* 7. 控制台无错误 */
   check("无控制台错误", consoleErrors.length === 0 && pageErrors.length === 0,
     consoleErrors.concat(pageErrors).slice(0, 3).join(" | "));
+
+  /* 7b. 响应式：手机视口（390×844）下无横向溢出、单栏、标尺隐藏 */
+  await page.setViewport({ width: 390, height: 844 });
+  await page.goto(BASE, { waitUntil: "networkidle0" });
+  await sleep(400);
+  const rwd = await page.evaluate(() => {
+    const stage = document.querySelector(".preview-stage");
+    return {
+      docW: document.documentElement.clientWidth,
+      docScrollW: document.documentElement.scrollWidth,
+      noHScroll: document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1,
+      singleCol: getComputedStyle(document.querySelector(".app-body")).gridTemplateColumns.split(" ").length === 1,
+      rulerHidden: getComputedStyle(document.querySelector(".ruler-x")).display === "none",
+      stageCols: getComputedStyle(stage).gridTemplateColumns.split(" ").length,
+      headerWrapped: document.querySelector(".app-header").getBoundingClientRect().height > 70,
+    };
+  });
+  check("手机视口无横向溢出", rwd.noHScroll, `${rwd.docW}/${rwd.docScrollW}`);
+  check("手机视口单栏堆叠", rwd.singleCol);
+  check("手机视口标尺隐藏且舞台铺满", rwd.rulerHidden && rwd.stageCols === 1);
+  check("手机视口顶栏换行", rwd.headerWrapped);
 
   console.log(`\n截图目录：${shotDir}`);
 } catch (err) {
