@@ -387,7 +387,7 @@ try {
   check("手机视口上下分屏（预览在上、标签页在下各 50%）",
     rwd.previewOnTop && rwd.halfSplit, `heights=${rwd.docW > 0 ? "ok" : "?"}`);
   check("手机视口无纵向滚动", rwd.noVScroll);
-  check("手机视口标尺隐藏且舞台铺满", rwd.rulerHidden && rwd.stageCols === 1);
+  check("手机视口标尺仍显示（2×2 舞台）", !rwd.rulerHidden && rwd.stageCols === 2);
   check("手机视口顶栏换行", rwd.headerWrapped);
 
   console.log(`\n截图目录：${shotDir}`);

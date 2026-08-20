@@ -278,19 +278,3 @@
   align-items: center;
   gap: 8px;
 }
-
-/* ---------- 响应式：手机隐藏标尺，预览舞台铺满 ---------- */
-@media (max-width: 768px) {
-  .preview-stage {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(0, 1fr);
-  }
-  .ruler-corner,
-  .ruler-x,
-  .ruler-y {
-    display: none;
-  }
-  .stage-scroll {
-    grid-area: 1 / 1;
-  }
-}
