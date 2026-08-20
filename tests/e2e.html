@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>e2e 冒烟测试</title>
+  <style>
+    body { font-family: monospace; background: #0a0f0c; color: #dce9de; padding: 24px; }
+    #result { font-size: 18px; color: #22c55e; white-space: pre-wrap; }
+    #frame { position: fixed; left: -9999px; top: 0; width: 10px; height: 10px; }
+  </style>
+</head>
+<body>
+  <div id="result">RUNNING…</div>
+  <iframe id="frame" sandbox="allow-scripts" title="test"></iframe>
+  <script type="module">
+    import { createPreview } from "../js/preview.js";
+
+    const frame = document.getElementById("frame");
+    const log = (msg) => (document.getElementById("result").textContent = msg);
+
+    const state = {
+      html: '<div style="width:300px;height:120px;background:#22c55e;color:#04150b;font:700 20px/120px sans-serif;text-align:center;">OK</div>',
+      widthMode: "auto",
+      fixedWidth: 1280,
+      scale: 2,
+      format: "png",
+      background: "auto",
+      customBg: "#22c55e",
+      runScripts: false,
+    };
+
+    const preview = createPreview(frame, {
+      getState: () => state,
+      onSize: () => {},
+      onReady: () => {},
+      onFatal: (m) => log("FATAL:" + m),
+    });
+
+    window.addEventListener("error", (e) => log("PAGE-ERROR:" + (e.message || e.type)));
+
+    setTimeout(async () => {
+      try {
+        preview.rebuild(state);
+        const { dataUrl } = await preview.requestCapture({ scale: 2, format: "png" });
+        const img = new Image();
+        await new Promise((res, rej) => {
+          img.onload = res;
+          img.onerror = () => rej(new Error("图片解码失败"));
+          img.src = dataUrl;
+        });
+        // 校验中心像素为绿色
+        const canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        const px = ctx.getImageData(Math.floor(img.naturalWidth / 2), Math.floor(img.naturalHeight / 2), 1, 1).data;
+        const isGreen = px[1] > 150 && px[0] < 120 && px[2] < 120;
+        log(
+          `PASS ${img.naturalWidth}x${img.naturalHeight} center=(${px[0]},${px[1]},${px[2]},${px[3]}) green=${isGreen}`
+        );
+      } catch (err) {
+        log("FAIL: " + ((err && err.message) || err));
+      }
+    }, 500);
+  </script>
+</body>
+</html>

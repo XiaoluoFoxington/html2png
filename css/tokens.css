@@ -1,0 +1,43 @@
+/* ============================================================
+   tokens.css — 设计变量（深色 · 绿色主题 · 直角）
+   ============================================================ */
+:root {
+  /* 色板 */
+  --bg: #0a0f0c;
+  --bg-raise: #0e1510;
+  --bg-panel: #0c120e;
+  --bg-inset: #080d0a;
+  --border: #1d2a20;
+  --border-strong: #2b3d30;
+
+  --text: #dce9de;
+  --text-dim: #82968a;
+  --text-faint: #52665a;
+
+  --accent: #22c55e;
+  --accent-strong: #16a34a;
+  --accent-soft: rgba(34, 197, 94, 0.14);
+  --accent-ring: rgba(34, 197, 94, 0.35);
+  --on-accent: #04150b;
+
+  --danger: #f87171;
+  --danger-soft: rgba(248, 113, 113, 0.12);
+  --warning: #fbbf24;
+
+  /* 字体 */
+  --font-ui: system-ui, -apple-system, "Segoe UI", "Microsoft YaHei",
+    "PingFang SC", "Noto Sans SC", sans-serif;
+  --font-mono: ui-monospace, "Cascadia Code", "JetBrains Mono", Consolas,
+    Menlo, "Courier New", monospace;
+
+  /* 布局 */
+  --header-h: 60px;
+  --ruler: 24px; /* 预览标尺厚度 */
+
+  /* 直角：全局不圆角 */
+  --radius: 0px;
+
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --shadow-1: 0 1px 0 rgba(0, 0, 0, 0.4);
+  --shadow-2: 0 6px 24px rgba(0, 0, 0, 0.45);
+}

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="输入 HTML 代码，实时预览并生成 PNG / JPEG / WebP 图片。原生静态前端，沙箱隔离，安全可靠。">
+  <title>HTML → PNG · 代码转图片</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/editor.css">
+  <link rel="stylesheet" href="css/preview.css">
+</head>
+<body>
+  <div class="app">
+
+    <!-- ===== 顶栏 ===== -->
+    <header class="app-header">
+      <div class="brand">
+        <img class="brand-icon" src="assets/favicon.svg" alt="" width="34" height="34">
+        <div>
+          <h1>HTML → PNG</h1>
+          <p>代码渲染成图片 · 实时预览 · 沙箱隔离</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <select id="example-select" class="select" title="加载示例模板">
+          <option value="">示例模板…</option>
+        </select>
+        <button id="btn-clear" class="btn btn-ghost" type="button">清空</button>
+        <button id="btn-copy" class="btn btn-ghost" type="button">复制图片</button>
+        <button id="btn-download" class="btn btn-primary" type="button">下载图片</button>
+      </div>
+    </header>
+
+    <!-- ===== 主体 ===== -->
+    <main class="app-body">
+
+      <!-- 左：代码编辑 -->
+      <section class="panel">
+        <div class="panel-head">
+          <h2>HTML 代码</h2>
+          <span class="hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> 快速下载</span>
+        </div>
+        <div id="editor"></div>
+      </section>
+
+      <!-- 右：预览与输出 -->
+      <section class="panel">
+        <div class="panel-head">
+          <h2>预览与输出</h2>
+          <div class="stats" id="stats">—</div>
+        </div>
+
+        <div class="error-banner hidden" id="error-banner" role="alert">
+          <span class="err-msg" id="err-msg"></span>
+          <button class="err-close" id="err-close" type="button" title="关闭">✕</button>
+        </div>
+
+        <div class="preview-stage" id="stage">
+          <div class="stage-center">
+            <div class="content-rulers" id="content-rulers">
+              <div class="ruler-corner" id="ruler-corner" title="内容尺寸（像素）">—</div>
+              <canvas class="ruler-x" id="ruler-x" aria-hidden="true"></canvas>
+              <canvas class="ruler-y" id="ruler-y" aria-hidden="true"></canvas>
+              <iframe id="frame" title="HTML 预览" sandbox="allow-scripts"></iframe>
+            </div>
+            <div class="stage-empty" id="stage-empty">
+              <span class="big">▣</span>
+              在左侧输入 HTML 代码，这里会实时预览
+            </div>
+          </div>
+          <div class="stage-overlay hidden" id="stage-overlay">
+            <span class="spinner"></span>
+            <span id="overlay-text">加载预览…</span>
+          </div>
+        </div>
+
+        <div class="settings">
+          <div class="setting">
+            <span class="setting-label">宽度</span>
+            <div class="seg" role="radiogroup" aria-label="宽度模式">
+              <label class="seg-item">
+                <input type="radio" name="widthMode" id="width-auto" value="auto" checked>
+                <span>自动</span>
+              </label>
+              <label class="seg-item">
+                <input type="radio" name="widthMode" id="width-fixed" value="fixed">
+                <span>固定</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="setting hidden" id="fixed-row">
+            <span class="setting-label">固定宽度</span>
+            <div class="presets" id="presets"></div>
+            <div class="input-wrap">
+              <input class="input" id="fixed-width" type="number" min="120" max="4096" step="10" value="1280">
+              <span class="unit">px</span>
+            </div>
+          </div>
+
+          <div class="setting">
+            <span class="setting-label">背景</span>
+            <select class="select" id="bg-select"></select>
+            <input class="color-input hidden" id="custom-bg" type="color" value="#22c55e" title="自定义背景色">
+          </div>
+
+          <div class="setting">
+            <span class="setting-label">缩放</span>
+            <select class="select" id="scale-select" title="输出图片的像素密度"></select>
+          </div>
+
+          <div class="setting">
+            <span class="setting-label">格式</span>
+            <select class="select" id="format-select" title="输出图片格式"></select>
+          </div>
+
+          <div class="setting">
+            <span class="setting-label">脚本</span>
+            <label class="switch" title="在沙箱内执行 HTML 中的 JavaScript（与宿主完全隔离）">
+              <input type="checkbox" id="run-scripts">
+              <span class="switch-box"></span>
+              <span class="switch-text">执行 JS</span>
+            </label>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+
+  <noscript>本工具需要启用 JavaScript 才能运行。</noscript>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

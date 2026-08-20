@@ -1,0 +1,193 @@
+/* ============================================================
+   preview.css — 标尺、预览舞台、输出设置、统计信息
+   ============================================================ */
+
+/* ---------- 预览舞台（棋盘格背景表示透明） ---------- */
+.preview-stage {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  background-image: conic-gradient(
+    #121a15 25%,
+    #0a100c 0 50%,
+    #121a15 0 75%,
+    #0a100c 0
+  );
+  background-size: 18px 18px;
+  background-color: var(--bg-inset);
+}
+
+.stage-center {
+  min-height: 100%;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+/* ---------- 标尺（贴在内容上，随内容一起滚动） ----------
+   结构：content-rulers 是一个收缩网格（24px 标尺行/列 + 内容），
+   角块、横/纵标尺、iframe 各占一格，所有坐标原点一致，
+   刻度读数即内容自身的像素坐标。 */
+.content-rulers {
+  display: grid;
+  grid-template-columns: var(--ruler) max-content;
+  grid-template-rows: var(--ruler) max-content;
+  width: max-content;
+  flex: none;
+}
+
+.ruler-corner {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  font-size: 8px;
+  line-height: 8px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+  background: var(--bg-raise);
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  user-select: none;
+  overflow: hidden;
+  white-space: pre;
+}
+
+.ruler-x {
+  grid-area: 1 / 2;
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  background: var(--bg-raise);
+  border-bottom: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.ruler-y {
+  grid-area: 2 / 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  background: var(--bg-raise);
+  border-right: 1px solid var(--border);
+  overflow: hidden;
+}
+
+/* 内容与标尺零点对齐；背景透明（棋盘格透出） */
+#frame {
+  grid-area: 2 / 2;
+  display: block;
+  width: 320px;
+  height: 200px;
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  box-shadow: var(--shadow-2);
+  transition: width 0.2s var(--ease), height 0.2s var(--ease);
+}
+
+/* 空状态提示 */
+.stage-empty {
+  margin-top: 48px;
+  text-align: center;
+  color: var(--text-faint);
+  font-size: 13px;
+  line-height: 2;
+  user-select: none;
+}
+.stage-empty .big {
+  font-size: 30px;
+  color: var(--border-strong);
+  display: block;
+  margin-bottom: 8px;
+}
+
+/* 覆盖层（加载中 / 生成中） */
+.stage-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background: rgba(6, 10, 7, 0.72);
+  backdrop-filter: blur(2px);
+  z-index: 10;
+  color: var(--text-dim);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+}
+
+.spinner {
+  width: 26px;
+  height: 26px;
+  border: 2px solid var(--border-strong);
+  border-top-color: var(--accent);
+  border-right-color: var(--accent);
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- 输出设置 ---------- */
+.settings {
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px 18px;
+  padding: 12px 14px;
+  background: var(--bg-raise);
+  border-top: 1px solid var(--border);
+}
+
+.setting {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.setting-label {
+  flex: none;
+  font-size: 12px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.setting .presets {
+  flex: 1;
+}
+
+/* ---------- 统计信息 ---------- */
+.stats {
+  font-size: 12px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.stats strong {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* 面板内小按钮 */
+.panel-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

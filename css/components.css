@@ -1,0 +1,336 @@
+/* ============================================================
+   components.css — 按钮、选择框、输入框、分段控件、开关、
+                    提示条、错误横幅、示例选择
+   ============================================================ */
+
+/* ---------- 按钮 ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  transition: background 0.15s var(--ease), border-color 0.15s var(--ease),
+    color 0.15s var(--ease), transform 0.05s var(--ease);
+  user-select: none;
+  white-space: nowrap;
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: var(--accent);
+}
+.btn-primary:hover:not(:disabled) {
+  background: #34d399;
+  border-color: #34d399;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-dim);
+  border-color: var(--border-strong);
+}
+.btn-ghost:hover:not(:disabled) {
+  color: var(--text);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.btn-danger {
+  background: transparent;
+  color: var(--danger);
+  border-color: var(--danger-soft);
+}
+.btn-danger:hover:not(:disabled) {
+  background: var(--danger-soft);
+  border-color: var(--danger);
+}
+
+/* ---------- 选择框 ---------- */
+.select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 7px 30px 7px 10px;
+  font-size: 13px;
+  color: var(--text);
+  background-color: var(--bg-inset);
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%2322c55e' stroke-width='1.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  border: 1px solid var(--border-strong);
+  cursor: pointer;
+}
+.select:hover {
+  border-color: var(--accent);
+}
+.select option {
+  background: var(--bg-raise);
+  color: var(--text);
+}
+
+/* ---------- 数字输入 ---------- */
+.input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.input {
+  width: 96px;
+  padding: 7px 10px;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  background: var(--bg-inset);
+  border: 1px solid var(--border-strong);
+}
+.input:hover,
+.input:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.unit {
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+/* ---------- 颜色选择 ---------- */
+.color-input {
+  width: 38px;
+  height: 32px;
+  padding: 2px;
+  background: var(--bg-inset);
+  border: 1px solid var(--border-strong);
+  cursor: pointer;
+}
+.color-input:hover {
+  border-color: var(--accent);
+}
+.color-input::-webkit-color-swatch-wrapper {
+  padding: 2px;
+}
+.color-input::-webkit-color-swatch {
+  border: none;
+}
+
+/* ---------- 分段控件（单选） ---------- */
+.seg {
+  display: inline-flex;
+  border: 1px solid var(--border-strong);
+}
+.seg-item {
+  position: relative;
+  cursor: pointer;
+}
+.seg-item input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+.seg-item span {
+  display: inline-block;
+  padding: 6px 14px;
+  font-size: 13px;
+  color: var(--text-dim);
+  background: var(--bg-inset);
+  border-right: 1px solid var(--border-strong);
+  transition: background 0.15s var(--ease), color 0.15s var(--ease);
+  user-select: none;
+}
+.seg-item:last-child span {
+  border-right: none;
+}
+.seg-item:hover span {
+  color: var(--text);
+}
+.seg-item input:checked + span {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+.seg-item input:focus-visible + span {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* ---------- 开关（复选框） ---------- */
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+.switch input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.switch-box {
+  width: 34px;
+  height: 18px;
+  flex: none;
+  background: var(--bg-inset);
+  border: 1px solid var(--border-strong);
+  position: relative;
+  transition: background 0.15s var(--ease), border-color 0.15s var(--ease);
+}
+.switch-box::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  background: var(--text-faint);
+  transition: transform 0.15s var(--ease), background 0.15s var(--ease);
+}
+.switch input:checked + .switch-box {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+.switch input:checked + .switch-box::after {
+  transform: translateX(16px);
+  background: var(--accent);
+}
+.switch input:focus-visible + .switch-box {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.switch-text {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+/* ---------- 预设尺寸 chips ---------- */
+.presets {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chip {
+  padding: 4px 9px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-dim);
+  background: var(--bg-inset);
+  border: 1px solid var(--border-strong);
+  transition: all 0.12s var(--ease);
+}
+.chip:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+.chip.is-active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* ---------- 错误横幅 ---------- */
+.error-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--danger);
+  background: var(--danger-soft);
+  border-bottom: 1px solid rgba(248, 113, 113, 0.35);
+}
+.error-banner .err-msg {
+  flex: 1;
+  word-break: break-word;
+}
+.error-banner .err-close {
+  flex: none;
+  color: var(--danger);
+  font-size: 15px;
+  line-height: 1;
+  padding: 2px 6px;
+  border: 1px solid rgba(248, 113, 113, 0.4);
+}
+.error-banner .err-close:hover {
+  background: var(--danger-soft);
+}
+
+/* ---------- 提示条 ---------- */
+.toasts {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 60;
+}
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 380px;
+  padding: 10px 14px;
+  font-size: 13px;
+  background: var(--bg-raise);
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-2);
+  animation: toast-in 0.18s var(--ease);
+}
+.toast::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  flex: none;
+  background: var(--accent);
+}
+.toast.toast-error::before {
+  background: var(--danger);
+}
+.toast.toast-warn::before {
+  background: var(--warning);
+}
+.toast.is-leaving {
+  opacity: 0;
+  transform: translateX(8px);
+  transition: all 0.25s var(--ease);
+}
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------- 键位提示 ---------- */
+kbd {
+  display: inline-block;
+  padding: 1px 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  background: var(--bg-inset);
+  border: 1px solid var(--border-strong);
+  border-bottom-width: 2px;
+}
