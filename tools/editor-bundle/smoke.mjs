@@ -360,24 +360,33 @@ try {
   check("无控制台错误", consoleErrors.length === 0 && pageErrors.length === 0,
     consoleErrors.concat(pageErrors).slice(0, 3).join(" | "));
 
-  /* 7b. 响应式：手机视口（390×844）下无横向溢出、单栏、标尺隐藏 */
+  /* 7b. 响应式：手机视口（390×844）下无横向溢出、
+     预览在上/标签页在下上下分屏各 50%、标尺隐藏 */
   await page.setViewport({ width: 390, height: 844 });
   await page.goto(BASE, { waitUntil: "networkidle0" });
   await sleep(400);
   const rwd = await page.evaluate(() => {
     const stage = document.querySelector(".preview-stage");
+    const ps = [...document.querySelectorAll(".app-body > .panel")];
+    const [code, prev] = ps;
+    const cb = code.getBoundingClientRect();
+    const pb = prev.getBoundingClientRect();
     return {
       docW: document.documentElement.clientWidth,
       docScrollW: document.documentElement.scrollWidth,
       noHScroll: document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1,
-      singleCol: getComputedStyle(document.querySelector(".app-body")).gridTemplateColumns.split(" ").length === 1,
+      noVScroll: document.documentElement.scrollHeight <= document.documentElement.clientHeight + 1,
+      previewOnTop: pb.top < cb.top,
+      halfSplit: Math.abs(pb.height - cb.height) < 12,
       rulerHidden: getComputedStyle(document.querySelector(".ruler-x")).display === "none",
       stageCols: getComputedStyle(stage).gridTemplateColumns.split(" ").length,
       headerWrapped: document.querySelector(".app-header").getBoundingClientRect().height > 70,
     };
   });
   check("手机视口无横向溢出", rwd.noHScroll, `${rwd.docW}/${rwd.docScrollW}`);
-  check("手机视口单栏堆叠", rwd.singleCol);
+  check("手机视口上下分屏（预览在上、标签页在下各 50%）",
+    rwd.previewOnTop && rwd.halfSplit, `heights=${rwd.docW > 0 ? "ok" : "?"}`);
+  check("手机视口无纵向滚动", rwd.noVScroll);
   check("手机视口标尺隐藏且舞台铺满", rwd.rulerHidden && rwd.stageCols === 1);
   check("手机视口顶栏换行", rwd.headerWrapped);
 

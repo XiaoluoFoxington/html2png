@@ -119,20 +119,31 @@
 /* ---------- 响应式 ----------
    断点：
    - >980px   桌面：左右 50% 分栏（固定视口高度，页面不滚动）
-   - ≤980px   平板/窄窗：单栏堆叠、整页滚动；隐藏品牌副标题
+   - ≤980px   平板/窄窗：预览在上、标签页在下，各占剩余高度
+              的 50%（固定视口，无滚动）；隐藏品牌副标题
    - ≤768px   手机：顶栏允许换行（保留全部功能）、间距紧凑、
-              面板高度自适应、标签均分整行 */
+              标签均分整行、隐藏预览标尺 */
 
 @media (max-width: 980px) {
   .app {
-    height: auto;
-    min-height: 100vh;
+    height: 100vh;
+    min-height: 0;
+    grid-template-rows: auto 1fr;
   }
   .app-body {
-    grid-template-columns: minmax(0, 1fr);
+    display: flex;
+    flex-direction: column;
   }
-  .panel {
-    min-height: 420px;
+  .app-body > .panel {
+    flex: 1 1 50%;
+    min-height: 0; /* 允许收缩到 50%，不按内容撑高 */
+  }
+  /* 预览面板置顶，标签页面板在下 */
+  .app-body > .panel:last-child {
+    order: 1;
+  }
+  .app-body > .panel:first-child {
+    order: 2;
   }
   /* 顶栏空间紧张：隐藏品牌副标题 */
   .brand p {
@@ -141,9 +152,6 @@
 }
 
 @media (max-width: 768px) {
-  .app {
-    grid-template-rows: auto 1fr;
-  }
   .app-header {
     flex-wrap: wrap;
     padding: 8px 12px;
@@ -161,13 +169,7 @@
     padding: 8px;
     gap: 8px;
   }
-  .panel {
-    min-height: 360px;
-  }
   /* 标签均分整行，触控更易点按 */
-  .tabs {
-    padding: 6px 6px 0;
-  }
   .tab {
     flex: 1;
     padding: 8px 10px;
