@@ -7,12 +7,12 @@
   <meta name="description" content="输入 HTML 代码，实时预览并生成 PNG / JPEG / WebP 图片。原生静态前端，沙箱隔离，安全可靠。">
   <title>HTML → PNG · 代码转图片</title>
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
-  <link rel="stylesheet" href="css/tokens.css">
-  <link rel="stylesheet" href="css/base.css">
-  <link rel="stylesheet" href="css/layout.css">
-  <link rel="stylesheet" href="css/components.css">
-  <link rel="stylesheet" href="css/editor.css">
-  <link rel="stylesheet" href="css/preview.css">
+  <link rel="stylesheet" href="css/tokens.css?v=3">
+  <link rel="stylesheet" href="css/base.css?v=3">
+  <link rel="stylesheet" href="css/layout.css?v=3">
+  <link rel="stylesheet" href="css/components.css?v=3">
+  <link rel="stylesheet" href="css/editor.css?v=3">
+  <link rel="stylesheet" href="css/preview.css?v=3">
 </head>
 <body>
   <div class="app">
@@ -61,13 +61,11 @@
         </div>
 
         <div class="preview-stage" id="stage">
-          <div class="stage-center">
-            <div class="content-rulers" id="content-rulers">
-              <div class="ruler-corner" id="ruler-corner" title="内容尺寸（像素）">—</div>
-              <canvas class="ruler-x" id="ruler-x" aria-hidden="true"></canvas>
-              <canvas class="ruler-y" id="ruler-y" aria-hidden="true"></canvas>
-              <iframe id="frame" title="HTML 预览" sandbox="allow-scripts"></iframe>
-            </div>
+          <div class="ruler-corner" id="ruler-corner" title="内容尺寸（像素）">—</div>
+          <canvas class="ruler-x" id="ruler-x" aria-hidden="true"></canvas>
+          <canvas class="ruler-y" id="ruler-y" aria-hidden="true"></canvas>
+          <div class="stage-scroll" id="stage-scroll">
+            <iframe id="frame" title="HTML 预览" sandbox="allow-scripts"></iframe>
             <div class="stage-empty" id="stage-empty">
               <span class="big">▣</span>
               在左侧输入 HTML 代码，这里会实时预览
@@ -137,6 +135,6 @@
   <div class="toasts" id="toasts" aria-live="polite"></div>
 
   <noscript>本工具需要启用 JavaScript 才能运行。</noscript>
-  <script type="module" src="js/main.js"></script>
+  <script type="module" src="js/main.js?v=3"></script>
 </body>
 </html>

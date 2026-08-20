@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>复现：iframe 透明画布（白色画布怪癖）</title>
+<style>
+  body { margin: 0; background: #101010; color: #dce9de; font: 14px/1.6 system-ui, sans-serif; padding: 16px; }
+  .stage {
+    background-image: conic-gradient(#121a15 25%, #0a100c 0 50%, #121a15 0 75%, #0a100c 0);
+    background-size: 18px 18px;
+    background-color: #080d0a;
+    border: 1px solid #2b3d30;
+    padding: 12px;
+    margin-bottom: 16px;
+  }
+  iframe { display: block; width: 640px; height: 300px; border: 1px solid #fbbf24; background: transparent; }
+  .lbl { margin: 10px 0 4px; color: #82968a; font-size: 13px; }
+  .ok { color: #22c55e; }
+  .bad { color: #f87171; }
+</style>
+</head>
+<body>
+  <h2>iframe 透明画布行为</h2>
+  <p>Chrome 的 iframe 文档画布默认是<b>白色</b>；只有透明内容区域会透出父背景（棋盘格）。
+  透明内容里没有任何元素覆盖的区域会露出白画布 —— 这是「预览白、导出透明」的根源。
+  应用的修复：透明/跟随页面模式下给 <code>html</code> 画棋盘格背景（导出时经 <code>h2p-flat</code> 剥离）。</p>
+
+  <div class="stage">
+    <div class="lbl">1) 透明内容 + 无棋盘格（旧行为）：内容右侧与下方 = 白色画布</div>
+    <iframe srcdoc="<!DOCTYPE html><html><head><style>html,body{margin:0!important;background:transparent!important}</style></head><body><div style='width:240px;height:120px;background:linear-gradient(135deg,#052e16,#064e3b);color:#d1fae5;'>内容</div></body></html>"></iframe>
+
+    <div class="lbl">2) 透明内容 + html 棋盘格（应用修复）：右侧与下方 = 棋盘格</div>
+    <iframe srcdoc="<!DOCTYPE html><html><head><style>html,body{margin:0!important;background-color:transparent!important}html{background-image:conic-gradient(#121a15 25%,#0a100c 0 50%,#121a15 0 75%,#0a100c 0)!important;background-size:18px 18px!important}html.h2p-flat{background-image:none!important}</style></head><body><div style='width:240px;height:120px;background:linear-gradient(135deg,#052e16,#064e3b);color:#d1fae5;'>内容</div></body></html>"></iframe>
+
+    <div class="lbl">3) body 自带背景（<code>body{background:#1e3a8a}</code>）盖在棋盘格之上：应显示蓝色</div>
+    <iframe srcdoc="<!DOCTYPE html><html><head><style>html,body{margin:0!important}body{background:#1e3a8a}html{background-image:conic-gradient(#121a15 25%,#0a100c 0 50%,#121a15 0 75%,#0a100c 0)!important;background-size:18px 18px!important}</style></head><body><div style='width:240px;height:120px;color:#fff;'>内容</div></body></html>"></iframe>
+  </div>
+</body>
+</html>

@@ -23,6 +23,24 @@ import { uid } from "./utils.js";
 /** 应用根目录（相对本模块解析，任何页面引用都正确） */
 const APP_BASE = new URL("../", import.meta.url).href;
 
+/** 棋盘格背景（表示透明），预览时画在 html 上 */
+const CHECKER_CSS =
+  "html{background-image:conic-gradient(#121a15 25%,#0a100c 0 50%,#121a15 0 75%,#0a100c 0)!important;background-size:18px 18px!important;}";
+const CHECKER_FLAT_CSS = "html.h2p-flat{background-image:none!important;}";
+
+/** 用户页面是否通过 <style> 规则给 html 元素设置了背景。
+    html 的背景色会被棋盘格背景图盖住（预览失真、与导出不一致），
+    因此这类页面跳过棋盘格注入；body 背景会正常盖在棋盘格之上，
+    无需跳过（透明/半透明 body 露出棋盘格恰好表示导出透明）。
+    内联样式不在此列：构建 srcdoc 时 html/body 自身属性会被丢弃。 */
+function pageHasOwnBackground(doc) {
+  let css = "";
+  doc.querySelectorAll("style").forEach((st) => {
+    css += (st.textContent || "") + "\n";
+  });
+  return /(?:^|[},])\s*html\s*\{[^}]*background/i.test(css);
+}
+
 /** 构造 srcdoc 文档 */
 function buildSrcDoc(state, docId) {
   const doc = new DOMParser().parseFromString(state.html || "", "text/html");
@@ -47,18 +65,35 @@ function buildSrcDoc(state, docId) {
   const bodyHTML = doc.body ? doc.body.innerHTML : "";
 
   // 注入的覆盖样式（置于用户内容之后，用 !important 保证生效）
-  const overrides = [];
+  const overrides = [
+    // 去掉 body 默认 8px 外边距：预览与导出尺寸一致，且避免透明背景下
+    // UA 画布（默认白色）透过 body 边距区域露出白边。
+    "html,body{margin:0!important;}",
+  ];
   if (state.widthMode === "auto") {
     overrides.push(
       `html,body{width:max-content!important;min-width:${AUTO_MIN_WIDTH}px!important;max-width:${AUTO_MAX_WIDTH}px!important;}`
     );
   }
   const bg = state.background;
-  if (bg === "transparent") overrides.push("html,body{background:transparent!important;}");
-  else if (bg === "white") overrides.push("html,body{background:#ffffff!important;}");
+  if (bg === "transparent") {
+    // 透明模式：把棋盘格直接画在 html 上（覆盖整个视口画布），
+    // 避免 UA 白色画布透过透明区域露出白块；导出时由
+    // iframe-bootstrap 通过 h2p-flat 类临时去掉棋盘格，保持输出透明。
+    overrides.push(
+      "html,body{background-color:transparent!important;}",
+      CHECKER_CSS,
+      CHECKER_FLAT_CSS
+    );
+  } else if (bg === "white") overrides.push("html,body{background:#ffffff!important;}");
   else if (bg === "black") overrides.push("html,body{background:#000000!important;}");
   else if (bg === "custom" && state.customBg) {
     overrides.push(`html,body{background:${state.customBg}!important;}`);
+  } else if (!pageHasOwnBackground(doc)) {
+    // 跟随页面：页面没有自带 html/body 背景时，导出内容为透明，
+    // 预览同样用棋盘格表示透明，避免 Chrome 把 iframe 内透明区域
+    // 渲染成白色（预览白、导出透明的不一致）。
+    overrides.push(CHECKER_CSS, CHECKER_FLAT_CSS);
   }
 
   // 固定渲染库脚本的基准地址，防止用户内容里的 <base> 劫持路径
@@ -69,14 +104,14 @@ function buildSrcDoc(state, docId) {
 <head>
 <meta charset="utf-8">
 <base href="${base}">
-<script src="vendor/html-to-image.min.js"></script>
+<script src="vendor/html-to-image.min.js?v=3"></script>
 ${headHTML}
 </head>
 <body>
 ${bodyHTML}
 <style>${overrides.join("\n")}</style>
 <script>window.__H2P_DOC=${JSON.stringify(docId)};</script>
-<script src="js/iframe-bootstrap.js"></script>
+<script src="js/iframe-bootstrap.js?v=3"></script>
 </body>
 </html>`;
 }

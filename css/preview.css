@@ -8,7 +8,10 @@
   flex: 1;
   min-width: 0;
   min-height: 0;
-  overflow: auto;
+  display: grid;
+  grid-template-columns: var(--ruler) minmax(0, 1fr);
+  grid-template-rows: var(--ruler) minmax(0, 1fr);
+  overflow: hidden;
   background-image: conic-gradient(
     #121a15 25%,
     #0a100c 0 50%,
@@ -19,27 +22,10 @@
   background-color: var(--bg-inset);
 }
 
-.stage-center {
-  min-height: 100%;
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-start;
-}
-
-/* ---------- 标尺（贴在内容上，随内容一起滚动） ----------
-   结构：content-rulers 是一个收缩网格（24px 标尺行/列 + 内容），
-   角块、横/纵标尺、iframe 各占一格，所有坐标原点一致，
-   刻度读数即内容自身的像素坐标。 */
-.content-rulers {
-  display: grid;
-  grid-template-columns: var(--ruler) max-content;
-  grid-template-rows: var(--ruler) max-content;
-  width: max-content;
-  flex: none;
-}
-
+/* ---------- 标尺（固定在舞台顶边与左边，不随内容滚动） ----------
+   结构：preview-stage 是 2×2 网格 —— 第一行/列是 24px 标尺，
+   右下格 stage-scroll 承载内容并滚动。刻度按滚动偏移平移重绘，
+   所见刻度即内容自身的像素坐标（见 js/ruler.js）。 */
 .ruler-corner {
   grid-area: 1 / 1;
   display: flex;
@@ -83,12 +69,32 @@
   overflow: hidden;
 }
 
+/* 内容滚动区：棋盘格表示透明；内容与标尺零点对齐 */
+.stage-scroll {
+  grid-area: 2 / 2;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  position: relative;
+  background-image: conic-gradient(
+    #121a15 25%,
+    #0a100c 0 50%,
+    #121a15 0 75%,
+    #0a100c 0
+  );
+  background-size: 18px 18px;
+  background-color: var(--bg-inset);
+}
+
 /* 内容与标尺零点对齐；背景透明（棋盘格透出） */
 #frame {
-  grid-area: 2 / 2;
   display: block;
+  /* content-box：让内容区宽度/高度严格等于测量尺寸，
+     避免 border-box 下内部视口比内容小 2px 触发 iframe 内滚动条 */
+  box-sizing: content-box;
   width: 320px;
   height: 200px;
+  max-width: none; /* 固定宽度模式下内容可超出可视区，靠滚动区横向滚动 */
   min-width: 0;
   min-height: 0;
   border: 1px solid var(--border-strong);
@@ -97,14 +103,20 @@
   transition: width 0.2s var(--ease), height 0.2s var(--ease);
 }
 
-/* 空状态提示 */
+/* 空状态提示（覆盖在滚动区内居中显示） */
 .stage-empty {
-  margin-top: 48px;
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
   color: var(--text-faint);
   font-size: 13px;
   line-height: 2;
   user-select: none;
+  pointer-events: none;
 }
 .stage-empty .big {
   font-size: 30px;

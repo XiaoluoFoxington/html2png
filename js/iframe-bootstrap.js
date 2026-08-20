@@ -31,18 +31,25 @@
   function measure() {
     var de = document.documentElement;
     var b = document.body;
+    // 不能依赖 scrollHeight/scrollWidth：根元素的滚动尺寸恒不小于视口
+    // （初始包含块），会让 iframe 永远无法收缩到内容尺寸。
+    // 用 offset* + getBoundingClientRect 的精确尺寸（向上取整）测量，
+    // 保证视口 ≥ 内容、不出现亚像素溢出（否则透明背景下会露出
+    // iframe 内部的浅色滚动条与白色画布）。
+    var r = de.getBoundingClientRect();
     var w = Math.max(
-      de.scrollWidth,
       de.offsetWidth,
-      de.clientWidth,
-      b ? b.scrollWidth : 0
+      b ? b.offsetWidth : 0,
+      Math.ceil(r.width)
     );
     var h = Math.max(
-      de.scrollHeight,
       de.offsetHeight,
-      de.clientHeight,
-      b ? b.scrollHeight : 0
+      b ? b.offsetHeight : 0,
+      Math.ceil(r.height)
     );
+    // 仅当内容真正溢出视口（超过 1px 容差）时，才采用滚动尺寸。
+    if (de.scrollHeight > de.clientHeight + 1) h = Math.max(h, de.scrollHeight);
+    if (de.scrollWidth > de.clientWidth + 1) w = Math.max(w, de.scrollWidth);
     return { width: Math.max(1, w), height: Math.max(1, h) };
   }
 
@@ -111,6 +118,17 @@
   function render(opts) {
     var scale = Math.min(4, Math.max(0.5, Number(opts && opts.scale) || 1));
     var format = opts && opts.format;
+    var de = document.documentElement;
+
+    // 透明模式下预览画布上有棋盘格背景（见 preview.js 注入的样式）；
+    // 导出前加 h2p-flat 类去掉它，保证输出保持透明。类在整次捕获期间
+    // 保持存在（克隆与样式读取都发生在 toCanvas 内部），数据生成后恢复。
+    var needsFlat = !de.classList.contains("h2p-flat");
+    if (needsFlat) de.classList.add("h2p-flat");
+
+    function restore() {
+      if (needsFlat) de.classList.remove("h2p-flat");
+    }
 
     return (function () {
       // 等待字体加载完成，避免文字字形缺失
@@ -121,7 +139,7 @@
       return fontsReady.then(function () {
         var m = measure();
         return lib
-          .toCanvas(document.documentElement, {
+          .toCanvas(de, {
             width: m.width,
             height: m.height,
             pixelRatio: scale,
@@ -140,7 +158,16 @@
             return dataUrl;
           });
       });
-    })();
+    })().then(
+      function (url) {
+        restore();
+        return url;
+      },
+      function (err) {
+        restore();
+        throw err;
+      }
+    );
   }
 
   /* ---------- 消息处理 ---------- */

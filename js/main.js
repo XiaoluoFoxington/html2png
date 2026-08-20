@@ -51,6 +51,7 @@ const rulers = createRulers({
   corner: document.getElementById("ruler-corner"),
   rulerX: document.getElementById("ruler-x"),
   rulerY: document.getElementById("ruler-y"),
+  scroll: document.getElementById("stage-scroll"),
 });
 
 const actions = {};
