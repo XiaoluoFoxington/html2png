@@ -1,0 +1,20 @@
+{
+  "name": "html2png-editor-bundle",
+  "private": true,
+  "version": "1.0.0",
+  "description": "开发期工具：将 CodeMirror 6 打包为 vendor/codemirror.min.js（不参与运行时，仅用于升级/重建）",
+  "scripts": {
+    "build": "node build.mjs",
+    "smoke": "node smoke.mjs"
+  },
+  "devDependencies": {
+    "@codemirror/lang-html": "^6.4.9",
+    "@codemirror/language": "^6.10.8",
+    "@codemirror/state": "^6.5.0",
+    "@codemirror/view": "^6.36.1",
+    "@lezer/highlight": "^1.2.1",
+    "codemirror": "^6.0.1",
+    "esbuild": "^0.24.2",
+    "puppeteer-core": "^23.11.1"
+  }
+}

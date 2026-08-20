@@ -5,5 +5,9 @@ Thumbs.db
 # 日志
 *.log
 
+# 编辑器打包工具（仅开发期）：依赖不提交
+tools/editor-bundle/node_modules/
+tools/editor-bundle/package-lock.json
+
 # 说明：.tmp/ 保留（含需求说明与历史截图），不再忽略；
 # 浏览器测试配置等瞬态文件请勿放入 .tmp/，以免污染版本库。

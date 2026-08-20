@@ -1,0 +1,223 @@
+/* ============================================================
+   smoke.mjs — 无头浏览器冒烟测试（CodeMirror 6 编辑器集成）
+   ------------------------------------------------------------
+   用法：cd tools/editor-bundle && npm install && npm run smoke
+   依赖系统 Edge/Chrome；自动启动本地服务器、跑完即关。
+   校验：加载无错误 / 高亮生效 / 示例切换 / 清空 / 输入 /
+   localStorage 持久化 / Ctrl+Enter 下载全链路。
+   ============================================================ */
+
+import puppeteer from "puppeteer-core";
+import { spawn } from "node:child_process";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
+import { mkdtempSync } from "node:fs";
+import { readdir } from "node:fs/promises";
+import { tmpdir } from "node:os";
+
+const HERE = dirname(fileURLToPath(import.meta.url));
+const ROOT = join(HERE, "..", "..");
+const PORT = 8799;
+const BASE = `http://127.0.0.1:${PORT}`;
+
+const EDGE = "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe";
+const CHROME = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
+const EXEC = EDGE;
+const PLACEHOLDER = "在这里粘贴或输入 HTML 代码…";
+
+let failed = 0;
+const results = [];
+function check(name, ok, detail = "") {
+  results.push({ name, ok, detail });
+  if (!ok) failed++;
+  console.log(`${ok ? "✔" : "✘"} ${name}${detail ? "  — " + detail : ""}`);
+}
+
+/* ---------- 启动本地服务器 ---------- */
+const server = spawn(process.execPath, [join(ROOT, "tools", "serve.mjs"), String(PORT), "127.0.0.1"], {
+  stdio: "ignore",
+});
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+async function waitServer(deadline = Date.now() + 10000) {
+  while (Date.now() < deadline) {
+    try {
+      const res = await fetch(BASE);
+      if (res.ok) return;
+    } catch {}
+    await sleep(200);
+  }
+  throw new Error("本地服务器启动超时");
+}
+
+const shotDir = mkdtempSync(join(tmpdir(), "html2png-smoke-"));
+let browser;
+try {
+  await waitServer();
+  browser = await puppeteer.launch({
+    executablePath: EXEC,
+    headless: true,
+    args: ["--no-sandbox", "--disable-gpu"],
+  });
+  // 接受下载：否则 <a download> 触发的下载会被静默丢弃（无头默认 deny）
+  const context = await browser.createBrowserContext({
+    downloadBehavior: { policy: "allow", downloadPath: shotDir },
+  });
+  const page = await context.newPage();
+  await page.setViewport({ width: 1440, height: 900 });
+
+  const consoleErrors = [];
+  const pageErrors = [];
+  page.on("console", (m) => {
+    if (m.type() === "error") consoleErrors.push(m.text());
+  });
+  page.on("pageerror", (e) => pageErrors.push(String(e)));
+
+  /* 1. 加载页面 */
+  await page.goto(BASE, { waitUntil: "networkidle0", timeout: 30000 });
+  await page.waitForSelector(".cm-editor", { timeout: 10000 });
+  await sleep(600); // 等高亮/预览就绪
+
+  const initial = await page.evaluate(() => ({
+    doc: document.querySelector(".cm-content").textContent,
+    tokens: [...document.querySelectorAll(".cm-content span")]
+      .filter((s) => s.className && /^\u037C/.test(s.className)).length,
+    gutter: !!document.querySelector(".cm-gutter"),
+  }));
+  check("页面加载且编辑器挂载", initial.doc.length > 0 && initial.gutter, `doc=${initial.doc.length}字`);
+  check("默认 HTML 已载入", initial.doc.includes("把任意 HTML 代码渲染成一张图片"));
+  check("语法高亮已生效", initial.tokens > 3, `${initial.tokens} 个高亮 token`);
+
+  /* 1b. 主题计算样式（对齐 tokens.css：深色 · 绿色） */
+  const theme = await page.evaluate(() => {
+    const cs = (sel, prop) => {
+      const el = document.querySelector(sel);
+      return el ? getComputedStyle(el)[prop] : null;
+    };
+    const tok = document.querySelector('.cm-content [class^="\u037c"]');
+    return {
+      editorBg: cs(".cm-editor", "backgroundColor"),      // --bg-inset #080d0a
+      gutterBg: cs(".cm-gutters", "backgroundColor"),     // --bg-panel #0c120e
+      gutterFg: cs(".cm-gutters", "color"),               // --text-faint #52665a
+      contentFont: cs(".cm-content", "fontFamily"),
+      tokenColor: tok ? getComputedStyle(tok).color : null,
+    };
+  });
+  check("主题生效（编辑器背景 #080d0a）", theme.editorBg === "rgb(8, 13, 10)", theme.editorBg);
+  check("主题生效（行号槽背景 #0c120e）", theme.gutterBg === "rgb(12, 18, 14)", theme.gutterBg);
+  check("主题生效（等宽字体）", /mono|Consolas|monospace/i.test(theme.contentFont || ""), theme.contentFont);
+  check("主题生效（token 着色）", !!theme.tokenColor && theme.tokenColor !== "rgb(220, 233, 222)", theme.tokenColor);
+
+  await page.screenshot({ path: join(shotDir, "1-initial.png") });
+
+  /* 2. 示例切换 */
+  await page.select("#example-select", "数据面板");
+  await sleep(400);
+  const exDoc = await page.evaluate(() => document.querySelector(".cm-content").textContent);
+  check("示例切换生效（数据面板）", exDoc.includes("数据总览"), `doc=${exDoc.length}字`);
+
+  /* 3. 清空 → 占位符 + 空状态
+     （注意：CM6 占位符是 .cm-content 的子节点，空文档时
+       textContent 会包含占位符文本，故按占位符出现来断言） */
+  await page.click("#btn-clear");
+  await sleep(200);
+  const cleared = await page.evaluate((ph) => ({
+    doc: document.querySelector(".cm-content").textContent,
+    placeholderVisible: !!document.querySelector(".cm-placeholder"),
+    hasPlaceholderText: document.querySelector(".cm-content").textContent.includes(ph),
+    emptyShown: !document.querySelector("#stage-empty").classList.contains("hidden"),
+  }), PLACEHOLDER);
+  check("清空后文档为空（占位符出现）",
+    cleared.hasPlaceholderText && !cleared.doc.includes("数据总览"),
+    `doc=${JSON.stringify(cleared.doc.slice(0, 60))}`);
+  check("占位符元素存在", cleared.placeholderVisible);
+  await sleep(1200); // 等待预览重建
+  const emptyNow = await page.evaluate(() =>
+    !document.querySelector("#stage-empty").classList.contains("hidden"));
+  check("预览空状态显示", emptyNow);
+
+  /* 4. 输入内容（自动闭合标签是 CM 特性，需计入预期） */
+  await page.click(".cm-content");
+  await page.keyboard.type("<h1>hello</h1>");
+  await sleep(300);
+  const typed = await page.evaluate(() => ({
+    doc: document.querySelector(".cm-content").textContent,
+    focused: document.activeElement === document.querySelector(".cm-content"),
+    editorFocused: !!document.querySelector(".cm-editor.cm-focused"),
+  }));
+  check("键盘输入生效", typed.doc.includes("hello"), `doc=${JSON.stringify(typed.doc)}`);
+  check("编辑器获得焦点", typed.focused && typed.editorFocused);
+
+  /* 4b. 自动闭合标签特性 */
+  await page.keyboard.type("<p>");
+  await sleep(200);
+  const autoClosed = await page.evaluate(() =>
+    document.querySelector(".cm-content").textContent.includes("<p></p>"));
+  check("自动闭合标签（<p> → <p></p>）", autoClosed);
+
+  /* 5. localStorage 持久化 */
+  await sleep(700); // persist debounce 400ms
+  await page.reload({ waitUntil: "networkidle0" });
+  await page.waitForSelector(".cm-editor", { timeout: 10000 });
+  await sleep(300);
+  const afterReload = await page.evaluate(() =>
+    document.querySelector(".cm-content").textContent);
+  check("刷新后内容持久化", afterReload.includes("hello"));
+
+  /* 6. Ctrl+Enter 下载全链路
+     （无头 Edge 不派发 page 'download' 事件，改为轮询下载目录
+       验证文件落盘——实测 downloadBehavior: allow 会正确保存文件） */
+  const DL_RE = /^html2png-\d{8}-\d{6}\.png$/;
+  async function waitDownloadFile(timeoutMs = 20000) {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      const hit = (await readdir(shotDir)).find((f) => DL_RE.test(f));
+      if (hit) return hit;
+      await sleep(200);
+    }
+    return null;
+  }
+
+  await page.click(".cm-content");
+  const focusState = await page.evaluate(() => ({
+    focused: document.activeElement === document.querySelector(".cm-content"),
+    editorFocused: !!document.querySelector(".cm-editor.cm-focused"),
+  }));
+  check("下载前编辑器已聚焦", focusState.focused && focusState.editorFocused,
+    JSON.stringify(focusState));
+
+  await page.keyboard.down("Control");
+  await page.keyboard.press("Enter");
+  await page.keyboard.up("Control");
+  let dlFile = await waitDownloadFile();
+  check("Ctrl+Enter 触发下载", !!dlFile, dlFile || "下载目录中未发现文件");
+
+  /* 6b. 兜底：直接点下载按钮（区分按键绑定问题与渲染管线问题） */
+  if (!dlFile) {
+    const diag = await page.evaluate(() => ({
+      toasts: [...document.querySelectorAll(".toasts .toast")].map((t) => t.textContent),
+      overlayHidden: document.querySelector("#stage-overlay").classList.contains("hidden"),
+    }));
+    console.log("    [诊断] toasts=", JSON.stringify(diag.toasts), " overlayHidden=", diag.overlayHidden);
+    await page.click("#btn-download");
+    dlFile = await waitDownloadFile();
+    check("按钮下载（兜底）", !!dlFile, dlFile || "下载目录中未发现文件");
+  }
+
+  await page.screenshot({ path: join(shotDir, "2-final.png") });
+
+  /* 7. 控制台无错误 */
+  check("无控制台错误", consoleErrors.length === 0 && pageErrors.length === 0,
+    consoleErrors.concat(pageErrors).slice(0, 3).join(" | "));
+
+  console.log(`\n截图目录：${shotDir}`);
+} catch (err) {
+  failed++;
+  console.error("✘ 冒烟测试异常：", err);
+} finally {
+  if (browser) await browser.close();
+  server.kill();
+}
+
+console.log(failed === 0 ? "\n全部通过 ✅" : `\n${failed} 项失败 ❌`);
+process.exit(failed === 0 ? 0 : 1);

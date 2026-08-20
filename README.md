@@ -6,6 +6,8 @@
 
 ## 功能
 
+- **高级编辑**：基于 CodeMirror 6 的代码编辑器——HTML 语法高亮（含内嵌 CSS / JS）、
+  行号 / 代码折叠 / 括号匹配 / 自动闭合标签、`Ctrl+F` 查找替换、多光标、撤销历史
 - **实时预览**：输入 HTML 即渲染，所见即所得（预览与输出严格一致）
 - **像素标尺**：预览区顶边/左边固定横/纵标尺与尺寸角块，滚动内容时刻度同步平移，所见刻度即内容坐标
 - **HTML → 图片**：PNG（默认）/ JPEG / WebP，输出倍数 1× / 2× / 3×
@@ -66,17 +68,19 @@ html2png/
 │   ├── main.js             # 入口：状态、装配、调度
 │   ├── config.js           # 默认值 / 示例模板 / 常量
 │   ├── utils.js            # 通用工具
-│   ├── editor.js           # 代码编辑器（行号 / Tab / 快捷键）
+│   ├── editor.js           # 代码编辑器（CodeMirror 6：高亮 / 折叠 / 查找 / 快捷键）
 │   ├── preview.js          # 沙箱 iframe 与渲染协议
 │   ├── capture.js          # 下载 / 剪贴板
 │   ├── ui.js               # 控件绑定 / 提示 / 统计
 │   └── iframe-bootstrap.js # 沙箱内部：测量尺寸 + 渲染图片
 ├── vendor/
-│   └── html-to-image.min.js # 第三方渲染库（本地化，离线可用）
+│   ├── html-to-image.min.js # 第三方渲染库（本地化，离线可用）
+│   └── codemirror.min.js    # CodeMirror 6 编辑器（本地化打包产物，离线可用）
 ├── assets/
 │   └── favicon.svg
 └── tools/
-    └── serve.mjs           # 零依赖 CORS 静态服务器
+    ├── serve.mjs           # 零依赖 CORS 静态服务器
+    └── editor-bundle/      # 开发期工具：CodeMirror 打包 + 无头浏览器冒烟测试
 ```
 
 ## 架构说明
@@ -122,7 +126,26 @@ html2png/
 PNG」全流程渲染，并校验输出图片的尺寸与中心像素颜色。在任意浏览器
 中打开该页面即可查看结果（渲染管线会给出 `PASS` / `FAIL` 结论）。
 
+编辑器集成还有自动化冒烟测试（无头浏览器驱动，覆盖加载 / 高亮 /
+示例切换 / 清空 / 输入 / 持久化 / Ctrl+Enter 下载）：
+
+```bash
+cd tools/editor-bundle && npm run smoke
+```
+
+## 编辑器依赖的构建（可选）
+
+应用本身仍是纯静态、无构建步骤；`vendor/codemirror.min.js` 是
+CodeMirror 6 的预打包产物，已提交进版本库，**日常使用无需构建**。
+仅当需要升级 CodeMirror 或修改打包入口时才需要：
+
+```bash
+cd tools/editor-bundle
+npm install          # 首次安装（仅开发期）
+npm run build        # 重新打包 → vendor/codemirror.min.js
+```
+
 ## 技术栈
 
 原生 HTML5 / CSS3 / JavaScript（ES Modules），第三方依赖仅
-`html-to-image`（已本地化到 `vendor/`，离线可用）。
+`html-to-image` 与 CodeMirror 6（均已本地化到 `vendor/`，离线可用）。
