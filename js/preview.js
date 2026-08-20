@@ -106,14 +106,14 @@ function buildSrcDoc(state, docId) {
 <head>
 <meta charset="utf-8">
 <base href="${base}">
-<script src="vendor/html-to-image.min.js?v=3"></script>
+<script src="vendor/html-to-image.min.js?v=4"></script>
 ${headHTML}
 </head>
 <body>
 ${bodyHTML}
 <style>${overrides.join("\n")}</style>
 <script>window.__H2P_DOC=${JSON.stringify(docId)};</script>
-<script src="js/iframe-bootstrap.js?v=3"></script>
+<script src="js/iframe-bootstrap.js?v=4"></script>
 </body>
 </html>`;
 }
