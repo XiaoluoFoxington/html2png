@@ -374,13 +374,14 @@ kbd {
 }
 
 /* ---------- 标签页（Tabs） ----------
-   选中标签与内容面板融为一体（底边框取内容面板背景色），
-   未选中标签保留灰色底边分隔。 */
+   容器保留整条底部分隔线；未选中标签底边透明露出分隔线，
+   选中标签底边取内容面板背景色盖住分隔线 → 与内容融为一体。 */
 .tabs {
   display: flex;
   flex: none;
   background: transparent;
   padding: 8px 8px 0;
+  border-bottom: 1px solid var(--border);
 }
 
 .tab {
@@ -391,7 +392,8 @@ kbd {
   color: var(--text-dim);
   background: transparent;
   border: 1px solid var(--border);
-  /* 相邻标签边框合并、底边下沉 1px 与内容面板衔接 */
+  border-bottom-color: transparent; /* 未选中：露出容器分隔线 */
+  /* 相邻标签边框合并、底边下沉 1px 与容器分隔线对齐 */
   margin: 0 -1px -1px 0;
   cursor: pointer;
   user-select: none;
@@ -404,7 +406,7 @@ kbd {
 .tab.is-active {
   color: var(--accent);
   background: var(--bg-panel); /* 与内容面板同色 → 融为一体 */
-  border-bottom-color: var(--bg-panel); /* 视觉上去掉下边框 */
+  border-bottom-color: var(--bg-panel); /* 盖住容器分隔线 → 视觉无下边框 */
 }
 
 .tab-panel {
