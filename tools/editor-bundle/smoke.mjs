@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
    smoke.mjs — 无头浏览器冒烟测试（CodeMirror 6 编辑器集成）
    ------------------------------------------------------------
    用法：cd tools/editor-bundle && npm install && npm run smoke
@@ -175,7 +175,7 @@ try {
   await page.screenshot({ path: join(shotDir, "1-initial.png") });
 
   /* 2. 预设：保存当前代码 → 清空 → 从下拉框加载 → 删除 */
-  await page.click(".cm-content");
+  await page.click(".cm-editor");
   await page.keyboard.type("<h1>preset-demo</h1>");
   await sleep(300);
 
@@ -254,7 +254,7 @@ try {
   check("预览空状态显示", emptyNow);
 
   /* 4. 输入内容（自动闭合标签是 CM 特性，需计入预期） */
-  await page.click(".cm-content");
+  await page.click(".cm-editor");
   await page.keyboard.type("<h1>hello</h1>");
   await sleep(300);
   const typed = await page.evaluate(() => ({
@@ -285,7 +285,7 @@ try {
   const srcdocBefore = await page.evaluate(() => document.getElementById("frame").srcdoc);
   await page.click(".switch-header");               // 关闭自动刷新
   await sleep(200);
-  await page.click(".cm-content");
+  await page.click(".cm-editor");
   await page.keyboard.type("<em>frozen</em>");
   await sleep(800);                                 // 超过 debounce 350ms
   const frozen = await page.evaluate(() => ({
@@ -306,7 +306,7 @@ try {
 
   await page.click(".switch-header");               // 再次关闭
   await sleep(200);
-  await page.click(".cm-content");
+  await page.click(".cm-editor");
   await page.keyboard.type("<b>manual</b>");
   await sleep(800);
   const srcdocStale = await page.evaluate(() => document.getElementById("frame").srcdoc);
@@ -336,7 +336,7 @@ try {
     return null;
   }
 
-  await page.click(".cm-content");
+  await page.click(".cm-editor");
   const focusState = await page.evaluate(() => ({
     focused: document.activeElement === document.querySelector(".cm-content"),
     editorFocused: !!document.querySelector(".cm-editor.cm-focused"),
