@@ -210,6 +210,14 @@ try {
     document.querySelector(".cm-content").textContent);
   check("预设加载生效（恢复代码）", presetDoc.includes("preset-demo"), `doc=${presetDoc.length}字`);
 
+  /* 2a. 加载预设后点「保存预设」自动填充当前预设名（便于快速覆盖） */
+  await page.click("#btn-save-preset");
+  await page.waitForSelector("#preset-dialog[open]", { timeout: 5000 });
+  const filledName = await page.$eval("#preset-name", (el) => el.value);
+  check("保存预设自动填充当前预设名", filledName === "测试预设", JSON.stringify(filledName));
+  await page.click("#preset-cancel");
+  await sleep(200);
+
   const dialogPromise = new Promise((resolve) =>
     page.once("dialog", (d) => { resolve(d.message()); d.accept(); }));
   await page.click("#btn-del-preset");

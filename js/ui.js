@@ -21,6 +21,7 @@ import {
  *   onDeletePreset:(id:string)=>void,
  *   onRefresh:()=>void,
  *   onClear:()=>void,
+ *   getActivePreset:()=>{id:string,name:string,html:string}|null,
  *   actions:{download:()=>void, copy:()=>void},
  * }} deps
  */
@@ -32,6 +33,7 @@ export function createUi({
   onDeletePreset,
   onRefresh,
   onClear,
+  getActivePreset,
   actions,
 }) {
   /* ---------- 元素 ---------- */
@@ -184,9 +186,12 @@ export function createUi({
   });
 
   el.savePreset.addEventListener("click", () => {
-    el.presetName.value = "";
+    // 打开/编辑中的预设：预填其名称并全选，便于直接覆盖或改名
+    const current = getActivePreset ? getActivePreset() : null;
+    el.presetName.value = current ? current.name : "";
     el.presetDialog.showModal();
     el.presetName.focus();
+    el.presetName.select();
   });
   el.presetCancel.addEventListener("click", () => el.presetDialog.close());
   el.presetForm.addEventListener("submit", (e) => {

@@ -63,6 +63,8 @@ const ui = createUi({
   onDeletePreset,
   onRefresh,
   onClear,
+  /** 当前活动预设（用于保存时预填名称，便于快速覆盖） */
+  getActivePreset: () => presets.find((p) => p.id === activePresetId) || null,
   actions,
 });
 
@@ -164,10 +166,13 @@ function setSetting(key, value) {
 
 /* ---------- 预设 / 清空 ---------- */
 let presets = loadPresets();
+/** 当前正在编辑/加载的预设 id（保存预设时用于预填名称，便于快速覆盖） */
+let activePresetId = null;
 
 /** 从下拉框加载预设：把其代码写入编辑器 */
 function onLoadPreset(preset) {
   if (!preset || typeof preset.html !== "string") return;
+  activePresetId = preset.id;
   state.html = preset.html;
   editor.setValue(preset.html);
   markChanged();
@@ -190,6 +195,7 @@ function onSavePreset(name) {
   });
   presets = list;
   savePresets(presets);
+  activePresetId = preset.id;
   ui.renderPresets(presets, preset.id);
   ui.toast(`已保存预设「${preset.name}」`);
 }
